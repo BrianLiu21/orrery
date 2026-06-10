@@ -8,6 +8,24 @@
   </head>
   <body style="background: #04060d">
     <div id="root"></div>
+    <script>
+      // Dev/headless aid: hidden tabs never fire requestAnimationFrame,
+      // which blocks R3F initialization entirely. Shim with timers so the
+      // app can boot and preview tooling can screenshot it. Visible tabs
+      // are untouched.
+      if (document.hidden) {
+        window.requestAnimationFrame = function (cb) {
+          return setTimeout(function () { cb(performance.now()) }, 16)
+        }
+        window.cancelAnimationFrame = clearTimeout.bind(window)
+        // ResizeObserver is also paint-gated when hidden; synthetic resize
+        // events make react-use-measure fall back to direct measurement.
+        var fire = function () { window.dispatchEvent(new Event('resize')) }
+        setTimeout(fire, 300)
+        setTimeout(fire, 1000)
+        setTimeout(fire, 3000)
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
