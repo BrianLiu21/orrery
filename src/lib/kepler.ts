@@ -95,6 +95,40 @@ export function orbitalPosition(
   return out
 }
 
+export const DAY_MS = 86_400_000
+
+/** Days from sim-now until an ISO deadline (negative = overdue). */
+export function daysUntilDue(deadlineIso: string, simNowMs: number): number {
+  return (Date.parse(deadlineIso) - simNowMs) / DAY_MS
+}
+
+/**
+ * Advance an orbital angle by dtDays at the Kepler rate for the CURRENT
+ * radius. This is the only correct way to move a planet whose radius is
+ * shrinking as time passes — integrating keeps the angle continuous where
+ * θ = ω(r)·t would teleport it whenever r changes.
+ */
+export function advanceAngle(theta: number, radius: number, dtDays: number): number {
+  return theta + angularSpeedForRadius(radius) * dtDays
+}
+
+/** Position in the orbital plane (x, z) for a radius and angle. The
+ * plane's inclination is applied by the parent group's rotation. */
+export function planePosition(
+  radius: number,
+  theta: number,
+  out: { x: number; z: number } = { x: 0, z: 0 },
+): { x: number; z: number } {
+  out.x = radius * Math.cos(theta)
+  out.z = radius * Math.sin(theta)
+  return out
+}
+
+/** Stable starting angle derived from a 32-bit hash. */
+export function phaseFromHash(hash: number): number {
+  return ((hash % 100_000) / 100_000) * Math.PI * 2
+}
+
 /** Habitable-zone annulus bounds: deadlines 0..HABITABLE_ZONE_DAYS out. */
 export function habitableZoneBounds(): { inner: number; outer: number } {
   return {
