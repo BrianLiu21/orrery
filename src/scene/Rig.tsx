@@ -7,6 +7,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { planetPositions } from '../state/planetPositions'
 import { useTaskStore } from '../state/useTaskStore'
 import { useUiStore } from '../state/useUiStore'
+import { GALAXY_CENTER } from '../lib/galaxy'
 import { planetSize } from './TaskPlanet'
 
 declare global {
@@ -20,6 +21,13 @@ declare global {
 const HOME_TARGET = new Vector3(0, 0, 0)
 const HOME_POSITION = new Vector3(0, 58, 145)
 
+// Galaxy view: frame both the system (a bright point at the origin) and
+// the legacy spiral around GALAXY_CENTER — the whole history in one look.
+const GALAXY_TARGET = new Vector3(GALAXY_CENTER[0] * 0.5, GALAXY_CENTER[1] * 0.5, GALAXY_CENTER[2] * 0.5)
+const GALAXY_POSITION = new Vector3(GALAXY_CENTER[0] * 0.5 - 180, 720, GALAXY_CENTER[2] * 0.5 + 760)
+
+const IDLE_SECONDS = 30
+
 /**
  * Camera rig: damped orbit controls, plus the cinematic fly-to. When a
  * task is selected the target eases onto the (moving) planet and the
@@ -31,15 +39,44 @@ export function Rig() {
   const camera = useThree((s) => s.camera)
   const desired = useRef(new Vector3())
   const dragging = useUiStore((s) => s.draggingTaskId !== null)
+  const lastInteraction = useRef(performance.now())
+
+  useEffect(() => {
+    const touch = () => {
+      lastInteraction.current = performance.now()
+    }
+    for (const ev of ['pointerdown', 'wheel', 'keydown'] as const) {
+      window.addEventListener(ev, touch, { passive: true })
+    }
+    return () => {
+      for (const ev of ['pointerdown', 'wheel', 'keydown'] as const) {
+        window.removeEventListener(ev, touch)
+      }
+    }
+  }, [])
 
   useFrame((_, delta) => {
     const c = controls.current
     if (!c) return
     const dt = Math.min(delta, 0.1)
-    const selectedId = useUiStore.getState().selectedTaskId
-    const dragging = useUiStore.getState().draggingTaskId !== null
+    const ui = useUiStore.getState()
+    const selectedId = ui.selectedTaskId
+    const dragging = ui.draggingTaskId !== null
+    const galaxyView = ui.viewMode === 'galaxy'
 
-    if (selectedId && !dragging) {
+    // Cinematic auto-orbit after idling in the resting system view.
+    c.autoRotate =
+      !galaxyView &&
+      !selectedId &&
+      !dragging &&
+      !document.hidden &&
+      performance.now() - lastInteraction.current > IDLE_SECONDS * 1000
+    c.autoRotateSpeed = 0.12
+
+    if (galaxyView) {
+      easing.damp3(c.target, GALAXY_TARGET, 0.9, dt)
+      easing.damp3(camera.position, GALAXY_POSITION, 1.1, dt)
+    } else if (selectedId && !dragging) {
       const pos = planetPositions.get(selectedId)
       const task = useTaskStore.getState().tasks[selectedId]
       if (pos && task) {
@@ -55,9 +92,10 @@ export function Rig() {
         }
       }
     } else if (!selectedId && c.target.lengthSq() > 0.25) {
-      // Deselected: ease the whole rig home — target AND position — so
-      // completing an inner task never strands the camera inside the
-      // star's glow. Once home, free orbiting resumes untouched.
+      // Deselected (or returning from the galaxy): ease the whole rig
+      // home — target AND position — so completing an inner task never
+      // strands the camera inside the star's glow. Once home, free
+      // orbiting resumes untouched.
       easing.damp3(c.target, HOME_TARGET, 0.6, dt)
       easing.damp3(camera.position, HOME_POSITION, 0.9, dt)
     }
@@ -99,7 +137,7 @@ export function Rig() {
       dampingFactor={0.05}
       rotateSpeed={0.6}
       minDistance={5}
-      maxDistance={400}
+      maxDistance={1800}
       maxPolarAngle={Math.PI * 0.55}
     />
   )

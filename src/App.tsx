@@ -18,6 +18,7 @@ import { Beacon } from './scene/Beacon'
 import { BlackHoles } from './scene/BlackHole'
 import { Starfield } from './scene/Starfield'
 import { Nebula } from './scene/Nebula'
+import { Galaxy } from './scene/Galaxy'
 import { installDevFrameDriver } from './scene/DevFrameDriver'
 import { Hud } from './ui/Hud'
 import { KeyboardNav } from './ui/KeyboardNav'
@@ -53,6 +54,7 @@ function System({ onSunReady }: { onSunReady: (mesh: Mesh) => void }) {
     <>
       <Starfield />
       <Nebula />
+      <Galaxy />
       <Star temp={classTemp} onSurfaceMesh={onSunReady} />
       <HabitableZone />
       <SnapRings />
@@ -136,7 +138,7 @@ export default function App() {
       <Canvas
         flat
         dpr={[1, 2]}
-        gl={{ antialias: false }}
+        gl={{ antialias: false, preserveDrawingBuffer: true }}
         camera={{ position: [0, 58, 145], fov: 42, near: 0.1, far: 2000 }}
         onCreated={installDevFrameDriver}
         onPointerMissed={() => useUiStore.getState().select(null)}

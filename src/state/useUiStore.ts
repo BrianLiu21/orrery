@@ -10,6 +10,12 @@ export interface DeathEvent {
   startedAt: number
 }
 
+export interface GalaxyPick {
+  title: string
+  project: string
+  completedAt: string
+}
+
 interface UiState {
   selectedTaskId: string | null
   hoveredTaskId: string | null
@@ -20,6 +26,10 @@ interface UiState {
   createOpen: boolean
   /** Project isolation — null = show all. */
   projectFilter: string | null
+  /** System (default) or zoomed way out over the legacy galaxy. */
+  viewMode: 'system' | 'galaxy'
+  /** Clicked star in the galaxy — a memory of finished work. */
+  galaxyPick: GalaxyPick | null
   select: (id: string | null) => void
   setHovered: (id: string | null) => void
   startDrag: (id: string) => void
@@ -29,6 +39,8 @@ interface UiState {
   clearDeath: (taskId: string) => void
   setCreateOpen: (open: boolean) => void
   setProjectFilter: (project: string | null) => void
+  setViewMode: (mode: 'system' | 'galaxy') => void
+  setGalaxyPick: (pick: GalaxyPick | null) => void
 }
 
 export const useUiStore = create<UiState>()((set, get) => ({
@@ -39,7 +51,10 @@ export const useUiStore = create<UiState>()((set, get) => ({
   deaths: [],
   createOpen: false,
   projectFilter: null,
-  select: (id) => set({ selectedTaskId: id }),
+  viewMode: 'system',
+  galaxyPick: null,
+  // Selecting a task always returns you to the system — the work is here.
+  select: (id) => set(id ? { selectedTaskId: id, viewMode: 'system' } : { selectedTaskId: id }),
   setHovered: (id) => set({ hoveredTaskId: id }),
   startDrag: (id) => set({ draggingTaskId: id }),
   setDragPreview: (days) => set({ dragPreviewDays: days }),
@@ -49,4 +64,7 @@ export const useUiStore = create<UiState>()((set, get) => ({
     set({ deaths: get().deaths.filter((d) => d.taskId !== taskId) }),
   setCreateOpen: (open) => set({ createOpen: open }),
   setProjectFilter: (project) => set({ projectFilter: project }),
+  setViewMode: (mode) =>
+    set(mode === 'galaxy' ? { viewMode: mode, selectedTaskId: null } : { viewMode: mode, galaxyPick: null }),
+  setGalaxyPick: (pick) => set({ galaxyPick: pick }),
 }))

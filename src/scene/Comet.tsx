@@ -20,6 +20,7 @@ import {
   radiusForDaysUntilDue,
 } from '../lib/kepler'
 import { hashString } from '../lib/stellar'
+import { sound } from '../lib/sound'
 import { makeGlowTexture } from '../lib/textures'
 import { writePlanetPosition, planetPositions } from '../state/planetPositions'
 
@@ -35,6 +36,11 @@ const SEMI_MAJOR = R_HORIZON * 0.62
 export function Comet({ task }: { task: Task }) {
   const group = useRef<Group>(null)
   const tail = useRef<Mesh>(null)
+
+  // An interrupt announces itself.
+  useEffect(() => {
+    sound.cometWhoosh()
+  }, [])
   const hash = useMemo(() => hashString(task.id), [task.id])
   const tilt = (((hash >>> 8) % 100) / 100 - 0.5) * 0.9
   const spin = phase(hash)

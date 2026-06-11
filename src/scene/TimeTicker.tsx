@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useTimeEngine } from '../state/useTimeEngine'
 import { useTaskStore } from '../state/useTaskStore'
 import { daysUntilDue } from '../lib/kepler'
+import { sound } from '../lib/sound'
 
 /**
  * Advances the time engine once per rendered frame, and keeps task
@@ -25,8 +26,12 @@ export function TimeTicker() {
     for (const task of Object.values(tasks)) {
       if (!task.deadline) continue
       const days = daysUntilDue(task.deadline, simNow)
-      if (task.status === 'active' && days < 0) updateTask(task.id, { status: 'overdue' })
-      else if (task.status === 'overdue' && days >= 0) updateTask(task.id, { status: 'active' })
+      if (task.status === 'active' && days < 0) {
+        updateTask(task.id, { status: 'overdue' })
+        sound.overdueSting()
+      } else if (task.status === 'overdue' && days >= 0) {
+        updateTask(task.id, { status: 'active' })
+      }
     }
   })
   return null

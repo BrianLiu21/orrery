@@ -20,6 +20,7 @@ import {
   SNAP_RING_DAYS,
 } from '../lib/kepler'
 import { hashString } from '../lib/stellar'
+import { sound } from '../lib/sound'
 import { projectAccent, projectInclination } from '../lib/projects'
 import { planetTraits } from '../lib/planetTraits'
 import { planetPositions, writePlanetPosition } from '../state/planetPositions'
@@ -97,7 +98,12 @@ export function TaskPlanet({ task }: { task: Task }) {
       (targetRadius - visualRadius.current) * (1 - Math.exp(-lambda * Math.min(delta, 0.1)))
     const radius = visualRadius.current
 
+    const prevAngle = angle.current
     angle.current = advanceAngle(angle.current, radius, dt)
+    // One full revolution = one chime, pitched by urgency (radius).
+    if (Math.floor(prevAngle / (Math.PI * 2)) < Math.floor(angle.current / (Math.PI * 2))) {
+      sound.orbitChime((radius - R_NOW) / (R_HORIZON - R_NOW))
+    }
     const p = planePosition(radius, angle.current, pos.current)
 
     if (planet.current) {

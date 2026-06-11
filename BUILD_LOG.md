@@ -183,3 +183,25 @@ keyboard cycle/select/pause confirmed. Judgment calls: (1) tier changes
 remount the composer via key={tier} — simpler than mutating pass
 chains; (2) reduced-motion keeps time flowing (pausing the CLOCK would
 falsify deadlines); (3) Supabase sync skipped per local-first scope.
+
+## Milestone 10 — The growing galaxy + polish
+
+The legacy layer (§6): every completion is a permanent clickable star.
+lib/galaxy.ts owns the mapping — age → spiral radius (log-scale outward
+migration; the wound arm is your timeline), project → one of three arms
+plus scatter (colored arms of work), mass → size/brightness; the galaxy
+core sits off-system at GALAXY_CENTER so your active star lives in the
+suburbs of its own history, like Sol. Archived-project black holes merge
+into a supermassive core that grows with each collapse. System ↔ Galaxy
+is one eased camera move (Rig), with clicking an earned star showing
+"[task], completed [date]" — a spatial completion log. Generative sound
+(lib/sound.ts, all synthesized): low detuned drone, orbit chimes pitched
+by urgency on each full revolution, completion triad (+rumble for
+supernova-class), comet whoosh, dissonant overdue sting, persistent
+mute. Plus: snapshot (PNG download), in-universe accretion-disk boot
+loader, 30s-idle cinematic auto-orbit. Judgment calls: (1) galaxy star
+positions computed at build, not per frame — intra-session drift is
+imperceptible; (2) selecting any task snaps viewMode back to system (the
+work is here); (3) galaxy renders nothing until the first completion —
+an empty legacy is honest; (4) sound is rate-limited (450ms) so a busy
+sky chimes gently rather than carillons.

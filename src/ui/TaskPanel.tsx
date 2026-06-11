@@ -6,6 +6,7 @@ import { daysUntilDue, DAY_MS } from '../lib/kepler'
 import { projectAccent } from '../lib/projects'
 import { planetPositions } from '../state/planetPositions'
 import { SUPERNOVA_MASS } from '../lib/planetTraits'
+import { sound } from '../lib/sound'
 
 function formatDays(days: number): string {
   const abs = Math.abs(days)
@@ -61,6 +62,7 @@ export function TaskPanel() {
       })
     }
     store.completeTask(task.id, useTimeEngine.getState().simNow)
+    sound.completionChime(!isRecurring && mass >= SUPERNOVA_MASS)
     if (!isRecurring) ui.select(null)
   }
 
@@ -113,11 +115,12 @@ export function TaskPanel() {
           <>
             <button
               className="hud-btn hud-btn--primary"
-              onClick={() =>
+              onClick={() => {
+                sound.cometWhoosh()
                 store.updateTask(task.id, {
                   tags: task.tags.filter((t) => t !== 'interrupt'),
                 })
-              }
+              }}
             >
               Capture
             </button>
