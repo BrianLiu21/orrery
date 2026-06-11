@@ -116,7 +116,16 @@ export function TaskPlanet({ task }: { task: Task }) {
       ui.hoveredTaskId === task.id ||
       ui.draggingTaskId === task.id
     const inZone = !Number.isNaN(days) && days >= 0 && days <= HABITABLE_ZONE_DAYS
-    const targetOpacity = blocked ? 0.05 : engaged ? 0.5 : inZone ? 0.38 : 0.15
+    const filteredOut = ui.projectFilter !== null && ui.projectFilter !== task.project
+    const targetOpacity = filteredOut
+      ? 0.04
+      : blocked
+        ? 0.05
+        : engaged
+          ? 0.5
+          : inZone
+            ? 0.38
+            : 0.15
     orbitOpacity.current +=
       (targetOpacity - orbitOpacity.current) * (1 - Math.exp(-6 * Math.min(delta, 0.1)))
   })

@@ -18,6 +18,8 @@ interface UiState {
   dragPreviewDays: number | null
   deaths: DeathEvent[]
   createOpen: boolean
+  /** Project isolation — null = show all. */
+  projectFilter: string | null
   select: (id: string | null) => void
   setHovered: (id: string | null) => void
   startDrag: (id: string) => void
@@ -26,6 +28,7 @@ interface UiState {
   pushDeath: (d: DeathEvent) => void
   clearDeath: (taskId: string) => void
   setCreateOpen: (open: boolean) => void
+  setProjectFilter: (project: string | null) => void
 }
 
 export const useUiStore = create<UiState>()((set, get) => ({
@@ -35,6 +38,7 @@ export const useUiStore = create<UiState>()((set, get) => ({
   dragPreviewDays: null,
   deaths: [],
   createOpen: false,
+  projectFilter: null,
   select: (id) => set({ selectedTaskId: id }),
   setHovered: (id) => set({ hoveredTaskId: id }),
   startDrag: (id) => set({ draggingTaskId: id }),
@@ -44,4 +48,5 @@ export const useUiStore = create<UiState>()((set, get) => ({
   clearDeath: (taskId) =>
     set({ deaths: get().deaths.filter((d) => d.taskId !== taskId) }),
   setCreateOpen: (open) => set({ createOpen: open }),
+  setProjectFilter: (project) => set({ projectFilter: project }),
 }))

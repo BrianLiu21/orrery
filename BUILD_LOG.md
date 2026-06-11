@@ -141,3 +141,25 @@ vignette → grain → ACES/AgX → SMAA). Judgment calls: idle ring opacity
 0.15 (0.10 read as dead); DoF home focus is the star with a wide
 worldFocusRange so the resting view stays crisp; SMAA last, on the
 tone-mapped frame.
+
+## Milestone 8 — The HUD
+
+Telemetry (top left: streak as "stable orbit," stellar class, completed
+today, in-zone count, periapsis breaches in klaxon red), TimeControls
+(bottom center: play/pause, 1:1 / m/s / h/s / d/s time-lapse, NOW
+re-anchor, mono sim clock), FilterBar (project isolation chips in accent
+colors + body search with fly-to-on-select), and a breathing red
+viewport-edge klaxon while anything is past periapsis. Streak now drives
+the central star's main-sequence class through useStarStore
+(log2(streak+1)/5 — the first week matters most, a month reaches
+blue-white; luminosity constant per §4) and project filtering dims
+non-matching orbit rings to near-nothing. Fonts: Oxanium labels + IBM
+Plex Mono numerals. Verified live: completing a task moved streak 0→1
+day and the star M→K; jumping +4 days breached two deadlines — klaxon
+lit, breach count went red, both planets Roche-shredded on schedule;
+streak correctly broke back to M. Judgment calls: (1) telemetry and
+klaxon poll at 1s/1.5s instead of subscribing per-frame; (2) the leva
+star-class slider is now overridden by the streak wiring (kept for
+shader tuning); (3) search needs 2+ characters and Enter selects the
+top match; (4) "periapsis breach" is the only overdue language anywhere
+— the HUD never says "late."

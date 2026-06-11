@@ -19,10 +19,9 @@ import { BlackHoles } from './scene/BlackHole'
 import { Starfield } from './scene/Starfield'
 import { Nebula } from './scene/Nebula'
 import { installDevFrameDriver } from './scene/DevFrameDriver'
-import { TaskPanel } from './ui/TaskPanel'
-import { CreateTask } from './ui/CreateTask'
-import { DragHud } from './ui/DragHud'
+import { Hud } from './ui/Hud'
 import { useTaskStore } from './state/useTaskStore'
+import { useStarStore } from './state/useStarStore'
 import { useTimeEngine } from './state/useTimeEngine'
 import { useUiStore } from './state/useUiStore'
 import { planetPositions } from './state/planetPositions'
@@ -31,6 +30,8 @@ import './ui/hud.css'
 function System({ onSunReady }: { onSunReady: (mesh: Mesh) => void }) {
   const tasks = useTaskStore((s) => s.tasks)
   const archivedProjects = useTaskStore((s) => s.archivedProjects)
+  // Streak → main-sequence class (wired by Telemetry). Luminosity constant.
+  const classTemp = useStarStore((s) => s.classTemp)
 
   const archived = new Set(archivedProjects)
   const visible = Object.values(tasks).filter(
@@ -48,7 +49,7 @@ function System({ onSunReady }: { onSunReady: (mesh: Mesh) => void }) {
     <>
       <Starfield />
       <Nebula />
-      <Star onSurfaceMesh={onSunReady} />
+      <Star temp={classTemp} onSurfaceMesh={onSunReady} />
       <HabitableZone />
       <SnapRings />
       <Remnants />
@@ -69,27 +70,15 @@ function System({ onSunReady }: { onSunReady: (mesh: Mesh) => void }) {
   )
 }
 
-/** Dev-time stand-in for milestone-8 TimeControls. */
-function TimeDevControls() {
-  const { timeLapse, visualPace, playing } = useControls('time', {
-    timeLapse: {
-      value: 1,
-      options: { 'real time': 1, 'min/sec': 60, 'hour/sec': 3600, 'day/sec': 86400 },
-      label: 'time-lapse',
-    },
+/** Dev tuning that survives milestone 8: orbit visual pace only — real
+ * time controls live in the HUD now. */
+function PaceDevControl() {
+  const { visualPace } = useControls('time', {
     visualPace: { value: 0.25, min: 0, max: 3, step: 0.05, label: 'orbit pace (d/s)' },
-    playing: { value: true },
   })
-  useEffect(() => {
-    useTimeEngine.getState().setSimRate(timeLapse)
-  }, [timeLapse])
   useEffect(() => {
     useTimeEngine.getState().setVisualPace(visualPace)
   }, [visualPace])
-  useEffect(() => {
-    if (playing) useTimeEngine.getState().play()
-    else useTimeEngine.getState().pause()
-  }, [playing])
   return null
 }
 
@@ -135,10 +124,8 @@ export default function App() {
         <Rig />
         {sun && <Effects sun={sun} />}
       </Canvas>
-      <TaskPanel />
-      <CreateTask />
-      <DragHud />
-      <TimeDevControls />
+      <Hud />
+      <PaceDevControl />
       <Leva titleBar={{ title: 'orrery / dev' }} collapsed />
     </>
   )
