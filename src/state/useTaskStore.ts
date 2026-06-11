@@ -171,10 +171,31 @@ export const useTaskStore = create<TaskStoreState>()(
     }),
     {
       name: 'orrery-tasks-v1',
+      version: 2,
       partialize: (s) => ({
         tasks: s.tasks,
         completions: s.completions,
       }),
+      // v1.1 ambient cut: heal pre-cut saves so nothing becomes invisible
+      // or unreachable — backlog tasks get a deadline a month out,
+      // blocked tasks wake up, interrupt tags are stripped.
+      migrate: (persisted) => {
+        const state = persisted as {
+          tasks?: Record<string, Task>
+          completions?: CompletionRecord[]
+        }
+        const tasks = state.tasks ?? {}
+        for (const t of Object.values(tasks)) {
+          if (t.deadline === null && t.status !== 'done') {
+            t.deadline = new Date(Date.now() + 30 * DAY_MS).toISOString()
+          }
+          if (t.status === 'blocked') t.status = 'active'
+          if (t.tags?.includes('interrupt')) {
+            t.tags = t.tags.filter((tag) => tag !== 'interrupt')
+          }
+        }
+        return { tasks, completions: state.completions ?? [] }
+      },
     },
   ),
 )
