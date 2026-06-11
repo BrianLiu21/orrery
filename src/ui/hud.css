@@ -1,0 +1,174 @@
+/* Orrery HUD — quiet, thin-line, diegetic. The scene is the hero. */
+
+:root {
+  --hud-bg: rgba(7, 11, 19, 0.58);
+  --hud-border: rgba(140, 180, 255, 0.16);
+  --hud-text: rgba(214, 226, 240, 0.92);
+  --hud-dim: rgba(150, 168, 190, 0.6);
+  --hud-accent: #7fd4ff;
+  --hud-danger: #ff5a3c;
+  --hud-ok: #3df5b8;
+  --hud-font: 'Avenir Next', 'Futura', system-ui, sans-serif;
+  --hud-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+.hud-panel {
+  position: fixed;
+  background: var(--hud-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--hud-border);
+  border-radius: 10px;
+  color: var(--hud-text);
+  font-family: var(--hud-font);
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 14px 16px;
+  user-select: none;
+}
+
+.hud-label {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hud-dim);
+}
+
+.hud-num {
+  font-family: var(--hud-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 3px 0;
+}
+
+.hud-btn {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--hud-border);
+  border-radius: 6px;
+  color: var(--hud-text);
+  font-family: var(--hud-font);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.hud-btn:hover {
+  border-color: rgba(140, 180, 255, 0.45);
+  background: rgba(127, 212, 255, 0.08);
+}
+
+.hud-btn--primary {
+  border-color: rgba(61, 245, 184, 0.4);
+  color: var(--hud-ok);
+}
+
+.hud-btn--primary:hover {
+  border-color: var(--hud-ok);
+  background: rgba(61, 245, 184, 0.1);
+}
+
+.hud-btn--danger {
+  border-color: rgba(255, 90, 60, 0.35);
+  color: var(--hud-danger);
+}
+
+.hud-btn--danger:hover {
+  border-color: var(--hud-danger);
+  background: rgba(255, 90, 60, 0.1);
+}
+
+/* Task panel — right side */
+.task-panel {
+  top: 64px;
+  right: 18px;
+  width: 280px;
+}
+
+.task-panel h2 {
+  margin: 2px 0 10px;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.task-panel .project-pill {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1px solid currentColor;
+  margin-bottom: 8px;
+}
+
+.task-panel .periapsis {
+  font-size: 22px;
+  margin: 6px 0 12px;
+}
+
+.task-panel .periapsis.overdue {
+  color: var(--hud-danger);
+}
+
+.task-panel .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+/* Create button + form — bottom left */
+.create-fab {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+}
+
+.create-form {
+  left: 18px;
+  bottom: 64px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.create-form input,
+.create-form select {
+  background: rgba(10, 16, 28, 0.7);
+  border: 1px solid var(--hud-border);
+  border-radius: 6px;
+  color: var(--hud-text);
+  font-family: var(--hud-font);
+  font-size: 13px;
+  padding: 7px 9px;
+  outline: none;
+}
+
+.create-form input:focus,
+.create-form select:focus {
+  border-color: rgba(140, 180, 255, 0.5);
+}
+
+/* Drag readout — bottom center */
+.drag-hud {
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.drag-hud .days {
+  font-size: 20px;
+}

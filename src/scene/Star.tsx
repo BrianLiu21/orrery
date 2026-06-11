@@ -1,14 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { shaderMaterial } from '@react-three/drei'
-import {
-  AdditiveBlending,
-  BackSide,
-  CanvasTexture,
-  Color,
-  type Mesh,
-  SRGBColorSpace,
-} from 'three'
+import { AdditiveBlending, BackSide, Color, type Mesh } from 'three'
 import { useControls } from 'leva'
 import starVert from '../shaders/star.vert'
 import starFrag from '../shaders/star.frag'
@@ -16,6 +9,7 @@ import coronaVert from '../shaders/corona.vert'
 import coronaFrag from '../shaders/corona.frag'
 import { STAR_RADIUS } from '../lib/kepler'
 import { stellarLightColor } from '../lib/stellar'
+import { makeHaloTexture, makeStreakTexture } from '../lib/textures'
 import { setUniforms } from '../lib/uniforms'
 import { Prominences } from './Prominences'
 
@@ -44,59 +38,6 @@ const CoronaMaterial = shaderMaterial(
   coronaVert,
   coronaFrag,
 )
-
-/** Soft radial halo — fills the gap between corona shell and bloom. */
-function makeHaloTexture(): CanvasTexture {
-  const size = 256
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  const ctx = canvas.getContext('2d')
-  if (ctx) {
-    const half = size / 2
-    const g = ctx.createRadialGradient(half, half, 0, half, half, half)
-    g.addColorStop(0, 'rgba(255, 214, 140, 0.6)')
-    g.addColorStop(0.3, 'rgba(255, 170, 70, 0.34)')
-    g.addColorStop(0.6, 'rgba(255, 120, 35, 0.13)')
-    g.addColorStop(1, 'rgba(255, 90, 20, 0)')
-    ctx.fillStyle = g
-    ctx.fillRect(0, 0, size, size)
-  }
-  const texture = new CanvasTexture(canvas)
-  texture.colorSpace = SRGBColorSpace
-  return texture
-}
-
-/** Anamorphic streak for the lens flare — a thin horizontal gaussian. */
-function makeStreakTexture(): CanvasTexture {
-  const w = 512
-  const h = 64
-  const canvas = document.createElement('canvas')
-  canvas.width = w
-  canvas.height = h
-  const ctx = canvas.getContext('2d')
-  if (ctx) {
-    const img = ctx.createImageData(w, h)
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const dx = Math.abs(x - w / 2) / (w / 2)
-        const dy = (y - h / 2) / (h / 2)
-        const horiz = Math.exp(-dx * 5.5)
-        const vert = Math.exp(-dy * dy * 18)
-        const v = horiz * vert
-        const i = (y * w + x) * 4
-        img.data[i] = 200 * v + 55 * v * v
-        img.data[i + 1] = 215 * v + 40 * v * v
-        img.data[i + 2] = 255 * v
-        img.data[i + 3] = 255 * v
-      }
-    }
-    ctx.putImageData(img, 0, 0)
-  }
-  const texture = new CanvasTexture(canvas)
-  texture.colorSpace = SRGBColorSpace
-  return texture
-}
 
 interface StarProps {
   /** Stellar class 0..1 (M→A); overrides the leva control when provided

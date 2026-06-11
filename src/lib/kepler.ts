@@ -43,6 +43,19 @@ export const K_PERIOD = 0.25
 /** Deadlines within this many days are "in the zone" — do this now. */
 export const HABITABLE_ZONE_DAYS = 2
 
+/** Inside this radius an overdue planet is tidally shredded (§5). */
+export const ROCHE_RADIUS = 5.2
+
+/** Sim-days an overdue task takes to spiral from R_NOW to the Roche limit. */
+export const DECAY_DAYS = 1.5
+
+/** Where completed-task remnants drift: the browsable archive halo (§6). */
+export const ARCHIVE_RADIUS = 85
+
+/** Reference rings shown while drag-rescheduling: today, the habitable-
+ * zone edge, this week, this month. */
+export const SNAP_RING_DAYS: readonly number[] = [1, HABITABLE_ZONE_DAYS, 7, 30]
+
 const RADIUS_SPAN = R_HORIZON - R_NOW
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))

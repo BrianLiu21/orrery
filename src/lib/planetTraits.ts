@@ -2,6 +2,10 @@ import { hashString } from './stellar'
 
 export type PlanetKind = 'gas' | 'rocky' | 'ice'
 
+/** Mass (priority × effort) at or above this goes supernova → neutron
+ * star; below it, planetary nebula → white dwarf (DESIGN.md §5). */
+export const SUPERNOVA_MASS = 12
+
 export interface PlanetTraits {
   kind: PlanetKind
   ringed: boolean

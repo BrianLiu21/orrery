@@ -8,9 +8,18 @@ import { Effects } from './scene/Effects'
 import { TaskPlanet } from './scene/TaskPlanet'
 import { HabitableZone } from './scene/HabitableZone'
 import { TimeTicker } from './scene/TimeTicker'
+import { SnapRings } from './scene/SnapRings'
+import { Remnants } from './scene/Remnants'
+import { DeathEffects } from './scene/effects/DeathEffect'
 import { installDevFrameDriver } from './scene/DevFrameDriver'
+import { TaskPanel } from './ui/TaskPanel'
+import { CreateTask } from './ui/CreateTask'
+import { DragHud } from './ui/DragHud'
 import { useTaskStore } from './state/useTaskStore'
 import { useTimeEngine } from './state/useTimeEngine'
+import { useUiStore } from './state/useUiStore'
+import { planetPositions } from './state/planetPositions'
+import './ui/hud.css'
 
 function System({ onSunReady }: { onSunReady: (mesh: Mesh) => void }) {
   const tasks = useTaskStore((s) => s.tasks)
@@ -19,6 +28,9 @@ function System({ onSunReady }: { onSunReady: (mesh: Mesh) => void }) {
     <>
       <Star onSurfaceMesh={onSunReady} />
       <HabitableZone />
+      <SnapRings />
+      <Remnants />
+      <DeathEffects />
       {Object.values(tasks).map((task) => (
         <TaskPlanet key={task.id} task={task} />
       ))}
@@ -53,7 +65,12 @@ function TimeDevControls() {
 declare global {
   interface Window {
     /** Dev-only store handles for headless preview debugging. */
-    __orrery?: { time: typeof useTimeEngine; tasks: typeof useTaskStore }
+    __orrery?: {
+      time: typeof useTimeEngine
+      tasks: typeof useTaskStore
+      ui: typeof useUiStore
+      positions: typeof planetPositions
+    }
   }
 }
 
@@ -62,7 +79,12 @@ export default function App() {
 
   useEffect(() => {
     if (import.meta.env.DEV) {
-      window.__orrery = { time: useTimeEngine, tasks: useTaskStore }
+      window.__orrery = {
+        time: useTimeEngine,
+        tasks: useTaskStore,
+        ui: useUiStore,
+        positions: planetPositions,
+      }
     }
   }, [])
 
@@ -74,6 +96,7 @@ export default function App() {
         gl={{ antialias: false }}
         camera={{ position: [0, 58, 145], fov: 42, near: 0.1, far: 2000 }}
         onCreated={installDevFrameDriver}
+        onPointerMissed={() => useUiStore.getState().select(null)}
       >
         <color attach="background" args={['#04060d']} />
         <TimeTicker />
@@ -81,6 +104,9 @@ export default function App() {
         <Rig />
         {sun && <Effects sun={sun} />}
       </Canvas>
+      <TaskPanel />
+      <CreateTask />
+      <DragHud />
       <TimeDevControls />
       <Leva titleBar={{ title: 'orrery / dev' }} collapsed />
     </>

@@ -56,3 +56,24 @@ Roche decay; (4) trimmed the project accent palette to cool hues only
 after the first render came out amber-heavy (§8 palette rule); (5) added
 `window.__orrery` dev hook (stores) for headless preview verification —
 used it to prove the +60-day jump contracts the system correctly.
+
+## Milestone 4 — Procedural planets (`f12b7a5`)
+
+Gas (warped fbm banding + storm), rocky (continents over fbm terrain,
+relief normals, night-side city lights for active tasks), ice (fractured
+shell + fresnel subsurface), rocky cloud shells, accent-tinted BackSide
+atmosphere rims, rings with shepherd gaps and a planet-shadow cylinder.
+All lighting flows through lib/light.glsl: star at origin, inverse-square
+normalized at the habitable zone — outer planets are dim on purpose.
+Iterations: rocky started as uniform noise-static (added the continental
+mask); city lights started as an amber carpet over the whole night face
+(made metropolis clusters sparse, continent-gated); the habitable zone
+read as green smoke when viewed edge-on (added a view-angle fade — it is
+a chart overlay, not a volumetric). **Major judgment call:** discovered
+the dev heartbeat had aged simNow 11 days — root cause was one clock
+driving both radii and angles. Split the engine: simNow tracks real time
+by default (simRate multiplier for time-travel preview), flowDays drives
+angles at a cinematic pace. Angle is decorative, radius is semantic — the
+split keeps Kepler ratios exact while making "the star is now" literally
+true. Also: planet kind biased by effort (mass→fate, §5); planetPositions
+registry + __lookAt dev camera as groundwork for M5.

@@ -111,6 +111,8 @@ export interface PlanetBodyProps {
   rim: number
   /** City lights on the dark side (active rocky tasks only). */
   alive: boolean
+  /** Blocked tasks: desaturated light, dimmed rim, no spin. */
+  frozen?: boolean
 }
 
 /**
@@ -118,12 +120,13 @@ export interface PlanetBodyProps {
  * atmosphere rim, optional cloud layer and rings. Lighting always comes
  * from the star at the world origin — never any other source.
  */
-export function PlanetBody({ size, accent, traits, rim, alive }: PlanetBodyProps) {
+export function PlanetBody({ size, accent, traits, rim, alive, frozen = false }: PlanetBodyProps) {
   const spinGroup = useRef<Group>(null)
   const body = useRef<Mesh>(null)
 
   const accentColor = useMemo(() => new Color(accent), [accent])
   const lightColor = useMemo(() => new Color(), [])
+  const greyColor = useMemo(() => new Color('#8d949b'), [])
 
   const surface = useMemo(() => {
     const Mat =
@@ -185,10 +188,16 @@ export function PlanetBody({ size, accent, traits, rim, alive }: PlanetBodyProps
   useFrame((state, delta) => {
     const t = state.clock.elapsedTime
     stellarLightColor(useStarStore.getState().classTemp, lightColor)
-    setUniforms(surface, { uTime: t, uLightColor: lightColor, uRim: rim, uCityGlow: alive ? 1 : 0 })
+    if (frozen) lightColor.lerp(greyColor, 0.75)
+    setUniforms(surface, {
+      uTime: t,
+      uLightColor: lightColor,
+      uRim: frozen ? rim * 0.25 : rim,
+      uCityGlow: alive ? 1 : 0,
+    })
     if (clouds) setUniforms(clouds, { uTime: t, uLightColor: lightColor })
     if (ring) setUniforms(ring, { uLightColor: lightColor })
-    if (spinGroup.current) spinGroup.current.rotation.y += delta * traits.spin
+    if (spinGroup.current && !frozen) spinGroup.current.rotation.y += delta * traits.spin
   })
 
   return (

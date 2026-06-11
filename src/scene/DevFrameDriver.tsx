@@ -19,19 +19,30 @@ export function installDevFrameDriver(state: RootState): void {
   if (!import.meta.env.DEV) return
 
   let timer: ReturnType<typeof setInterval> | undefined
+  let manualUntil = 0
 
   const kick = (frames = 1) => {
     for (let i = 0; i < frames; i++) {
       state.advance(performance.now() / 1000 + i / 60)
     }
   }
-  window.__kick = kick
+  window.__kick = (frames = 1) => {
+    // Manual kicks own the clock for a few seconds so staged animation
+    // screenshots aren't raced forward by the heartbeat.
+    manualUntil = performance.now() + 5000
+    kick(frames)
+  }
+
+  const heartbeat = () => {
+    if (performance.now() < manualUntil) return
+    kick()
+  }
 
   const sync = () => {
     if (document.hidden) {
       state.setFrameloop('never')
       kick(2)
-      timer ??= setInterval(kick, 500)
+      timer ??= setInterval(heartbeat, 500)
     } else {
       if (timer) clearInterval(timer)
       timer = undefined
