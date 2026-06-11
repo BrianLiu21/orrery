@@ -36,3 +36,23 @@ custom anamorphic streak sprite rather than a ghost-chain — subtler;
 (4) kept the M1 sole-point-light rule — no fill lights added. Flag: corona
 fringe is slightly "furry" at system distance; revisit during milestone-7
 polish.
+
+## Milestone 3 — Time engine + the mapping (`08ece17`)
+
+Time engine with a deliberate `simNow`/`flowDays` split: planets integrate
+orbital angle from *played* time only, so jump-to-date changes radii (how
+far deadlines are) without teleporting planets along their orbits — the
+contraction stays continuous either way. Task store persists tasks +
+completion records (galaxy fuel) to localStorage; first run seeds a
+10-task demo system across three projects. TaskPlanet derives radius from
+the deadline *every frame* through kepler.ts, so the inward drift of time
+needs no extra mechanism. Orbit rings became one shared unit-circle
+geometry scaled per frame. Judgment calls: (1) default time speed is 0.2
+days/sec, not real-time — at real-time nothing visibly moves, and a dead
+sky reads as broken; M8's TimeControls will expose real-time and presets;
+(2) deadline is nullable — null = Oort-cloud backlog (M6) rather than a
+separate status; (3) overdue tasks currently clamp at R_NOW until M5's
+Roche decay; (4) trimmed the project accent palette to cool hues only
+after the first render came out amber-heavy (§8 palette rule); (5) added
+`window.__orrery` dev hook (stores) for headless preview verification —
+used it to prove the +60-day jump contracts the system correctly.

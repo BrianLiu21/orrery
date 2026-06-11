@@ -28,13 +28,21 @@ function System({ onSunReady }: { onSunReady: (mesh: Mesh) => void }) {
 
 /** Dev-time stand-in for milestone-8 TimeControls. */
 function TimeDevControls() {
-  const { speed, playing } = useControls('time', {
-    speed: { value: 0.2, min: 0, max: 10, step: 0.05, label: 'days / sec' },
+  const { timeLapse, visualPace, playing } = useControls('time', {
+    timeLapse: {
+      value: 1,
+      options: { 'real time': 1, 'min/sec': 60, 'hour/sec': 3600, 'day/sec': 86400 },
+      label: 'time-lapse',
+    },
+    visualPace: { value: 0.25, min: 0, max: 3, step: 0.05, label: 'orbit pace (d/s)' },
     playing: { value: true },
   })
   useEffect(() => {
-    useTimeEngine.getState().setSpeed(speed)
-  }, [speed])
+    useTimeEngine.getState().setSimRate(timeLapse)
+  }, [timeLapse])
+  useEffect(() => {
+    useTimeEngine.getState().setVisualPace(visualPace)
+  }, [visualPace])
   useEffect(() => {
     if (playing) useTimeEngine.getState().play()
     else useTimeEngine.getState().pause()

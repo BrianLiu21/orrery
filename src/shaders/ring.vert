@@ -1,11 +1,11 @@
-varying vec2 vPos;
+varying vec3 vObjPos;
 varying vec3 vWorldPos;
-varying vec3 vWorldNormal;
+varying vec3 vPlanetCenter;
 
 void main() {
-  vPos = position.xy;
+  vObjPos = position;
   vec4 worldPos = modelMatrix * vec4(position, 1.0);
   vWorldPos = worldPos.xyz;
-  vWorldNormal = normalize(mat3(modelMatrix) * vec3(0.0, 0.0, 1.0));
+  vPlanetCenter = modelMatrix[3].xyz;
   gl_Position = projectionMatrix * viewMatrix * worldPos;
 }
