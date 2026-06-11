@@ -205,3 +205,25 @@ imperceptible; (2) selecting any task snaps viewMode back to system (the
 work is here); (3) galaxy renders nothing until the first completion —
 an empty legacy is honest; (4) sound is rate-limited (450ms) so a busy
 sky chimes gently rather than carillons.
+
+## Post-completion review fixes
+
+The M7-commit review workflow stalled on a session limit before
+reporting, but its journal held nine adversarially-confirmed findings —
+all fixed: (1) DoF never actually tracked the selection (the R3F wrapper
+copies the target prop on mount; the effect's own target is now
+re-pointed at the live vector each frame); (2) completions made during
+time-travel preview persisted phantom future dates into completedAt and
+beacon recurrence — durable writes now always stamp the wall clock,
+preview is read-only visualization; (3) the static-ring "park the head
+at -100" sentinel never worked (GLSL mod wraps negatives) — replaced
+with an explicit uHasHead flag; (4) the orbit gradient smeared across
+the LineLoop's closing segment — the shader now interpolates cos/sin
+and reconstructs the angle, continuous at the seam; (5) the traveling
+pulse was one-sided — now a symmetric circular-distance blob; (6) the
+beacon's inline mean motion moved into kepler.meanMotionForPeriod;
+(7-9) seed comment no longer claims a comet it doesn't contain, README
+says beacons and shows all milestones complete. Judgment call: deadline
+CREATION during preview still uses simNow (drag-to-radius is relative
+to the previewed star by construction) — only completion records are
+pinned to reality.

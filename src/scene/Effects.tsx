@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import {
   Bloom,
@@ -11,7 +11,12 @@ import {
   ToneMapping,
   Vignette,
 } from '@react-three/postprocessing'
-import { BlendFunction, KernelSize, ToneMappingMode } from 'postprocessing'
+import {
+  BlendFunction,
+  type DepthOfFieldEffect,
+  KernelSize,
+  ToneMappingMode,
+} from 'postprocessing'
 import { useControls } from 'leva'
 import { type Mesh, Vector3 } from 'three'
 import { useUiStore } from '../state/useUiStore'
@@ -51,11 +56,16 @@ export function Effects({ sun }: { sun: Mesh }) {
   })
 
   // DoF focus target: eased toward the selected planet, home = the star.
+  // The R3F wrapper COPIES the `target` prop on mount, so mutating the
+  // vector alone does nothing — re-point the effect's own target at our
+  // live vector every frame (the underlying effect reads it in update()).
   const focusTarget = useMemo(() => new Vector3(), [])
+  const dofRef = useRef<DepthOfFieldEffect>(null)
   useFrame(() => {
     const sel = useUiStore.getState().selectedTaskId
     const pos = (sel && planetPositions.get(sel)) || ORIGIN
     focusTarget.lerp(pos, 0.08)
+    if (dofRef.current) dofRef.current.target = focusTarget
   })
 
   // Quality tiers shed the expensive passes first (DoF, god rays), then
@@ -85,6 +95,7 @@ export function Effects({ sun }: { sun: Mesh }) {
       )}
       {dof ? (
         <DepthOfField
+          ref={dofRef}
           target={focusTarget}
           worldFocusRange={p.focusRange}
           bokehScale={p.bokehScale}

@@ -66,6 +66,12 @@ export function radiusForPeriod(periodDays: number): number {
   return Math.pow(periodDays / K_PERIOD, 2 / 3)
 }
 
+/** Mean motion (radians per sim-day) for a fixed period — the beacon's
+ * metronome. Angular-speed math lives here, never in components. */
+export function meanMotionForPeriod(periodDays: number): number {
+  return (Math.PI * 2) / periodDays
+}
+
 /**
  * Comet (eccentric) orbits — star at the focus. Radius at true anomaly θ
  * for semi-major axis a, eccentricity e.

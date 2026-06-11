@@ -92,7 +92,11 @@ export function TaskPanel() {
         startedAt: Date.now(),
       })
     }
-    store.completeTask(task.id, useTimeEngine.getState().simNow)
+    // Completions are facts about reality: stamp the WALL clock, never
+    // simNow — completing during a time-travel preview must not persist
+    // phantom future dates (streaks, recurrences, and the galaxy all
+    // read these records as truth).
+    store.completeTask(task.id, Date.now())
     sound.completionChime(!isRecurring && mass >= SUPERNOVA_MASS)
     if (!isRecurring) ui.select(null)
   }
@@ -150,7 +154,7 @@ export function TaskPanel() {
                 title="Complete subtask"
                 onClick={() => {
                   sound.completionChime(false)
-                  store.completeTask(m.id, useTimeEngine.getState().simNow)
+                  store.completeTask(m.id, Date.now())
                 }}
               >
                 ✓

@@ -5,7 +5,8 @@ mechanics literally encode time. **The star is now**: a task's deadline maps
 to orbital radius, orbital speed follows Kepler's third law (`T ∝ a^(3/2)`),
 and the habitable zone marks "due in the next ~48h."
 
-The full feature spec lives in `DESIGN.md` (not yet added to the repo).
+The full feature spec lives in `DESIGN.md`; the build history with every
+judgment call is in `BUILD_LOG.md`.
 
 ## Stack
 
@@ -34,12 +35,12 @@ npm run verify:kepler  # prove T ∝ a^(3/2), deadline<->radius round trip, etc.
 ## Milestones
 
 - [x] 1 — Scaffold + one Keplerian orbit
-- [ ] 2 — Star shader (granulation, corona, selective bloom)
-- [ ] 3 — Time engine + deadline→radius mapping + habitable zone
-- [ ] 4 — Procedural planets
-- [ ] 5 — Interactions (birth, fly-to, drag-reschedule, complete/overdue)
-- [ ] 6 — Moons, projects, Oort cloud, comets, pulsars, black holes
-- [ ] 7 — Full post-processing + starfield/nebula
-- [ ] 8 — HUD
-- [ ] 9 — Hardening (persistence, quality tiers, a11y)
-- [ ] 10 — Polish (sound, snapshot/share)
+- [x] 2 — Star shader (granulation, corona, selective bloom)
+- [x] 3 — Time engine + deadline→radius mapping + habitable zone
+- [x] 4 — Procedural planets
+- [x] 5 — Interactions (birth, fly-to, drag-reschedule, complete/overdue)
+- [x] 6 — Moons, projects, Oort cloud, comets, beacons, black holes
+- [x] 7 — Full post-processing + starfield/nebula
+- [x] 8 — HUD
+- [x] 9 — Hardening (persistence, quality tiers, a11y)
+- [x] 10 — The growing galaxy, generative sound, snapshot

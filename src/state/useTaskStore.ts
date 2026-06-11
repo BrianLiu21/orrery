@@ -81,8 +81,8 @@ function makeTask(partial: Partial<Task> & Pick<Task, 'title'>): Task {
 function seedTasks(): Record<string, Task> {
   const now = Date.now()
   const due = (days: number) => new Date(now + days * DAY_MS).toISOString()
-  // Calm by default: a representative sky, not a showroom — every exotic
-  // type still appears with real data, the seed just doesn't stack them.
+  // Calm by default: a representative sky, not a showroom. Comets appear
+  // when a real interrupt does (tag 'interrupt'); the seed doesn't fake one.
   const seeds: Array<Partial<Task> & Pick<Task, 'title'>> = [
     { title: 'Ship the quarterly report', deadline: due(0.6), priority: 5, effort: 3, project: 'ship' },
     { title: 'Review open pull requests', deadline: due(1.4), priority: 3, effort: 1, project: 'ship' },

@@ -61,6 +61,7 @@ export const Orbit = forwardRef<Group, OrbitProps>(function Orbit(
         uColor: { value: new Color(color) },
         uOpacity: { value: opacity },
         uHead: { value: 0 },
+        uHasHead: { value: 0 },
         uTime: { value: 0 },
       },
     })
@@ -73,9 +74,8 @@ export const Orbit = forwardRef<Group, OrbitProps>(function Orbit(
     setUniforms(material, {
       uTime: state.clock.elapsedTime,
       uOpacity: opacityRef?.current ?? opacity,
-      // Static rings read as uniform circles: park the head far in the
-      // past so only `base` contributes.
-      uHead: headRef ? headRef.current % (Math.PI * 2) : -100,
+      uHead: headRef ? headRef.current % (Math.PI * 2) : 0,
+      uHasHead: headRef ? 1 : 0,
     })
   })
 

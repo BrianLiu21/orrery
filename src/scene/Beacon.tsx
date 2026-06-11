@@ -5,7 +5,13 @@ import type { Task } from '../state/useTaskStore'
 import { RECURRENCE_DAYS } from '../state/useTaskStore'
 import { useTimeEngine } from '../state/useTimeEngine'
 import { useUiStore } from '../state/useUiStore'
-import { STAR_RADIUS, phaseFromHash, planePosition, radiusForPeriod } from '../lib/kepler'
+import {
+  STAR_RADIUS,
+  meanMotionForPeriod,
+  phaseFromHash,
+  planePosition,
+  radiusForPeriod,
+} from '../lib/kepler'
 import { hashString } from '../lib/stellar'
 import { makeGlowTexture } from '../lib/textures'
 import { writePlanetPosition, planetPositions } from '../state/planetPositions'
@@ -40,7 +46,7 @@ export function Beacon({ task }: { task: Task }) {
     const dt = prevFlow.current === null ? 0 : flowDays - prevFlow.current
     prevFlow.current = flowDays
     // Metronomic: ω is fixed by the interval, not by the radius.
-    angle.current += ((Math.PI * 2) / intervalDays) * dt
+    angle.current += meanMotionForPeriod(intervalDays) * dt
     const p = planePosition(radius, angle.current, pos.current)
     if (group.current) {
       group.current.position.set(p.x, 0, p.z)
