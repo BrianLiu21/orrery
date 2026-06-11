@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useTaskStore, taskMass } from '../state/useTaskStore'
+import { useShallow } from 'zustand/react/shallow'
+import { useTaskStore, taskMass, type Priority } from '../state/useTaskStore'
 import { useTimeEngine } from '../state/useTimeEngine'
 import { useUiStore } from '../state/useUiStore'
 import { daysUntilDue, DAY_MS } from '../lib/kepler'
@@ -23,6 +24,20 @@ export function TaskPanel() {
   const selectedId = useUiStore((s) => s.selectedTaskId)
   const task = useTaskStore((s) => (selectedId ? s.tasks[selectedId] : undefined))
   const [days, setDays] = useState<number | null>(null)
+  const [addingMoon, setAddingMoon] = useState(false)
+  const [moonTitle, setMoonTitle] = useState('')
+
+  // Live subtasks of the selected planet.
+  const moons = useTaskStore(
+    useShallow((s) =>
+      Object.values(s.tasks).filter((t) => t.parentId === selectedId && t.status !== 'done'),
+    ),
+  )
+
+  useEffect(() => {
+    setAddingMoon(false)
+    setMoonTitle('')
+  }, [selectedId])
 
   useEffect(() => {
     if (!task?.deadline) {
@@ -47,6 +62,22 @@ export function TaskPanel() {
   const isBacklog = !task.deadline
   const isComet = task.tags.includes('interrupt')
   const isRecurring = task.recurrence !== 'none'
+  // Moons only render around plain planets — gate spawning to match.
+  const canHaveMoons = !task.parentId && !isBacklog && !isComet && !isRecurring
+
+  const addMoon = () => {
+    const title = moonTitle.trim()
+    if (!title) return
+    store.addTask({
+      title,
+      parentId: task.id,
+      project: task.project,
+      deadline: task.deadline,
+      priority: 2 as Priority,
+      effort: 1,
+    })
+    setMoonTitle('')
+  }
 
   const complete = () => {
     if (!isRecurring) {
@@ -105,6 +136,50 @@ export function TaskPanel() {
         <span className="hud-num">{task.status}</span>
       </div>
       {task.notes && <p style={{ color: 'var(--hud-dim)', margin: '8px 0 0' }}>{task.notes}</p>}
+
+      {(moons.length > 0 || canHaveMoons) && (
+        <div className="moon-list">
+          <div className="hud-label">Moons</div>
+          {moons.map((m) => (
+            <div className="hud-row" key={m.id}>
+              <button className="moon-link" onClick={() => ui.select(m.id)}>
+                {m.title}
+              </button>
+              <button
+                className="hud-btn"
+                title="Complete subtask"
+                onClick={() => {
+                  sound.completionChime(false)
+                  store.completeTask(m.id, useTimeEngine.getState().simNow)
+                }}
+              >
+                ✓
+              </button>
+            </div>
+          ))}
+          {canHaveMoons &&
+            (addingMoon ? (
+              <input
+                className="moon-input"
+                autoFocus
+                placeholder="Moon title — Enter to capture"
+                value={moonTitle}
+                onChange={(e) => setMoonTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') addMoon()
+                  if (e.key === 'Escape') {
+                    setAddingMoon(false)
+                    setMoonTitle('')
+                  }
+                }}
+              />
+            ) : (
+              <button className="hud-btn" style={{ marginTop: 6 }} onClick={() => setAddingMoon(true)}>
+                + Moon
+              </button>
+            ))}
+        </div>
+      )}
 
       <div className="actions">
         {isBacklog ? (

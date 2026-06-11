@@ -308,6 +308,47 @@
   }
 }
 
+/* Moon (subtask) list inside the task panel */
+.moon-list {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--hud-border);
+}
+
+.moon-link {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--hud-text);
+  font-family: var(--hud-font);
+  font-size: 12px;
+  text-align: left;
+  padding: 2px 0;
+  cursor: pointer;
+}
+
+.moon-link:hover {
+  color: var(--hud-accent);
+}
+
+.moon-input {
+  width: 100%;
+  margin-top: 6px;
+  background: rgba(10, 16, 28, 0.7);
+  border: 1px solid var(--hud-border);
+  border-radius: 6px;
+  color: var(--hud-text);
+  font-family: var(--hud-font);
+  font-size: 12px;
+  padding: 6px 8px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.moon-input:focus {
+  border-color: rgba(140, 180, 255, 0.5);
+}
+
 /* Utilities + galaxy star readout — bottom right */
 .utilities {
   right: 18px;
