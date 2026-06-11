@@ -20,8 +20,12 @@ import { Starfield } from './scene/Starfield'
 import { Nebula } from './scene/Nebula'
 import { installDevFrameDriver } from './scene/DevFrameDriver'
 import { Hud } from './ui/Hud'
+import { KeyboardNav } from './ui/KeyboardNav'
+import { Fallback, webglSupported } from './ui/Fallback'
+import { AdaptiveQuality } from './scene/AdaptiveQuality'
 import { useTaskStore } from './state/useTaskStore'
 import { useStarStore } from './state/useStarStore'
+import { useQualityStore } from './state/useQualityStore'
 import { useTimeEngine } from './state/useTimeEngine'
 import { useUiStore } from './state/useUiStore'
 import { planetPositions } from './state/planetPositions'
@@ -89,6 +93,7 @@ declare global {
       time: typeof useTimeEngine
       tasks: typeof useTaskStore
       ui: typeof useUiStore
+      quality: typeof useQualityStore
       positions: typeof planetPositions
     }
   }
@@ -96,6 +101,7 @@ declare global {
 
 export default function App() {
   const [sun, setSun] = useState<Mesh | null>(null)
+  const [webgl] = useState(webglSupported)
 
   useEffect(() => {
     if (import.meta.env.DEV) {
@@ -103,10 +109,27 @@ export default function App() {
         time: useTimeEngine,
         tasks: useTaskStore,
         ui: useUiStore,
+        quality: useQualityStore,
         positions: planetPositions,
       }
     }
   }, [])
+
+  // prefers-reduced-motion: the sky barely drifts. Radii (deadline truth)
+  // are unaffected — only the decorative angular motion slows.
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const apply = () => {
+      useTimeEngine.getState().setVisualPace(mq.matches ? 0.01 : 0.25)
+    }
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [])
+
+  if (!webgl) {
+    return <Fallback />
+  }
 
   return (
     <>
@@ -119,12 +142,14 @@ export default function App() {
         onPointerMissed={() => useUiStore.getState().select(null)}
       >
         <color attach="background" args={['#04060d']} />
+        <AdaptiveQuality />
         <TimeTicker />
         <System onSunReady={setSun} />
         <Rig />
         {sun && <Effects sun={sun} />}
       </Canvas>
       <Hud />
+      <KeyboardNav />
       <PaceDevControl />
       <Leva titleBar={{ title: 'orrery / dev' }} collapsed />
     </>

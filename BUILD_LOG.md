@@ -163,3 +163,23 @@ star-class slider is now overridden by the streak wiring (kept for
 shader tuning); (3) search needs 2+ characters and Enter selects the
 top match; (4) "periapsis breach" is the only overdue language anywhere
 — the HUD never says "late."
+
+## Milestone 9 — Hardening
+
+Adaptive quality tiers (high/medium/low) driven by drei's
+PerformanceMonitor: god rays + DoF shed first, then chromatic
+aberration/vignette/grain/SMAA, nebula billboards and the two far
+starfield layers; dpr clamps 2 → 1.5 → 1. Selective bloom survives to
+the floor — the star's glow IS the product. The monitor is suspended
+while the tab is hidden (throttled fps is noise, not a GPU verdict).
+prefers-reduced-motion drops the decorative orbital pace to near-still
+(deadline radii unaffected — the truth never animates away) and stops
+the klaxon CSS pulses. Keyboard nav: arrows cycle bodies by radius,
+Enter/Esc, Space play/pause, +/- time-lapse, N new body, / search.
+WebGL2-unsupported renders a flat diegetic task readout instead of a
+dead screen. Persistence was already durable (tasks + completions +
+archived projects). Verified live: all three tiers render error-free;
+keyboard cycle/select/pause confirmed. Judgment calls: (1) tier changes
+remount the composer via key={tier} — simpler than mutating pass
+chains; (2) reduced-motion keeps time flowing (pausing the CLOCK would
+falsify deadlines); (3) Supabase sync skipped per local-first scope.

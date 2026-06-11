@@ -307,3 +307,20 @@
     opacity: 0.55;
   }
 }
+
+/* WebGL fallback — centered flat readout */
+.fallback-panel {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100vw - 40px));
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .klaxon-vignette,
+  .telemetry .klaxon-num {
+    animation: none;
+  }
+}

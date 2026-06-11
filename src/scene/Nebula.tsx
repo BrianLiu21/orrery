@@ -6,6 +6,7 @@ import nebulaVert from '../shaders/nebula.vert'
 import nebulaFrag from '../shaders/nebula.frag'
 import { mulberry32 } from '../lib/stellar'
 import { setUniforms } from '../lib/uniforms'
+import { useQualityStore } from '../state/useQualityStore'
 import { BAND_TILT } from './Starfield'
 
 interface NebulaSpec {
@@ -83,6 +84,9 @@ function NebulaBillboard({ spec }: { spec: NebulaSpec }) {
 
 export function Nebula() {
   const specs = useMemo(buildSpecs, [])
+  // Fullscreen-ish transparent billboards are overdraw — first to go.
+  const tier = useQualityStore((s) => s.tier)
+  if (tier === 'low') return null
   return (
     <group rotation={BAND_TILT}>
       {specs.map((s, i) => (

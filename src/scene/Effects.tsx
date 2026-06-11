@@ -15,6 +15,7 @@ import { BlendFunction, KernelSize, ToneMappingMode } from 'postprocessing'
 import { useControls } from 'leva'
 import { type Mesh, Vector3 } from 'three'
 import { useUiStore } from '../state/useUiStore'
+import { useQualityStore } from '../state/useQualityStore'
 import { planetPositions } from '../state/planetPositions'
 
 const ORIGIN = new Vector3(0, 0, 0)
@@ -57,20 +58,32 @@ export function Effects({ sun }: { sun: Mesh }) {
     focusTarget.lerp(pos, 0.08)
   })
 
+  // Quality tiers shed the expensive passes first (DoF, god rays), then
+  // the cosmetic ones — selective bloom survives to 'medium' because the
+  // star's glow IS the look; 'low' keeps only bloom + tone mapping.
+  const tier = useQualityStore((s) => s.tier)
+  const godrays = tier === 'high'
+  const dof = tier === 'high' && p.dofEnabled
+  const cosmetics = tier !== 'low'
+
   return (
-    <EffectComposer multisampling={0}>
-      <GodRays
-        sun={sun}
-        samples={48}
-        density={0.96}
-        decay={p.godraysDecay}
-        weight={p.godraysWeight}
-        exposure={p.godraysExposure}
-        clampMax={0.22}
-        kernelSize={KernelSize.SMALL}
-        blur
-      />
-      {p.dofEnabled ? (
+    <EffectComposer multisampling={0} key={tier}>
+      {godrays ? (
+        <GodRays
+          sun={sun}
+          samples={48}
+          density={0.96}
+          decay={p.godraysDecay}
+          weight={p.godraysWeight}
+          exposure={p.godraysExposure}
+          clampMax={0.22}
+          kernelSize={KernelSize.SMALL}
+          blur
+        />
+      ) : (
+        <></>
+      )}
+      {dof ? (
         <DepthOfField
           target={focusTarget}
           worldFocusRange={p.focusRange}
@@ -86,11 +99,23 @@ export function Effects({ sun }: { sun: Mesh }) {
         intensity={p.bloomIntensity}
         radius={p.bloomRadius}
       />
-      <ChromaticAberration offset={[p.aberration, p.aberration * 0.6]} radialModulation modulationOffset={0.4} />
-      <Vignette eskil={false} offset={0.3} darkness={p.vignetteDarkness} />
-      <Noise premultiply blendFunction={BlendFunction.SCREEN} opacity={p.grain} />
+      {cosmetics ? (
+        <ChromaticAberration
+          offset={[p.aberration, p.aberration * 0.6]}
+          radialModulation
+          modulationOffset={0.4}
+        />
+      ) : (
+        <></>
+      )}
+      {cosmetics ? <Vignette eskil={false} offset={0.3} darkness={p.vignetteDarkness} /> : <></>}
+      {cosmetics ? (
+        <Noise premultiply blendFunction={BlendFunction.SCREEN} opacity={p.grain} />
+      ) : (
+        <></>
+      )}
       <ToneMapping mode={p.toneMapping} />
-      <SMAA />
+      {cosmetics ? <SMAA /> : <></>}
     </EffectComposer>
   )
 }

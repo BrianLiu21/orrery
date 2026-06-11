@@ -11,6 +11,7 @@ import starfieldVert from '../shaders/starfield.vert'
 import starfieldFrag from '../shaders/starfield.frag'
 import { mulberry32 } from '../lib/stellar'
 import { setUniforms } from '../lib/uniforms'
+import { useQualityStore } from '../state/useQualityStore'
 import { perspScale } from './effects/particleUtils'
 
 /** Ambient stellar classes, weighted for look: mostly faint warm/white,
@@ -128,11 +129,14 @@ function StarLayer({ spec }: { spec: LayerSpec }) {
  * Layered ambient starfield — parallax comes free from camera motion.
  * In milestone 10 this sky becomes the user's own galaxy: every
  * completion adds a permanent star above these ambient layers.
+ * Lower quality tiers drop the farthest (densest) layers first.
  */
 export function Starfield() {
+  const tier = useQualityStore((s) => s.tier)
+  const layers = tier === 'high' ? LAYERS : tier === 'medium' ? LAYERS.slice(0, 2) : LAYERS.slice(0, 1)
   return (
     <>
-      {LAYERS.map((spec) => (
+      {layers.map((spec) => (
         <StarLayer key={spec.seed} spec={spec} />
       ))}
     </>
