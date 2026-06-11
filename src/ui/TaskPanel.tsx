@@ -43,17 +43,25 @@ export function TaskPanel() {
   const ui = useUiStore.getState()
   const store = useTaskStore.getState()
 
+  const isBacklog = !task.deadline
+  const isComet = task.tags.includes('interrupt')
+  const isRecurring = task.recurrence !== 'none'
+
   const complete = () => {
-    const pos = planetPositions.get(task.id)
-    ui.pushDeath({
-      taskId: task.id,
-      mass,
-      position: pos ? [pos.x, pos.y, pos.z] : [0, 0, 0],
-      accent,
-      startedAt: Date.now(),
-    })
+    if (!isRecurring) {
+      // Death by mass. Recurring tasks are pulsars — they never die,
+      // their deadline just advances one interval (store handles it).
+      const pos = planetPositions.get(task.id)
+      ui.pushDeath({
+        taskId: task.id,
+        mass,
+        position: pos ? [pos.x, pos.y, pos.z] : [0, 0, 0],
+        accent,
+        startedAt: Date.now(),
+      })
+    }
     store.completeTask(task.id, useTimeEngine.getState().simNow)
-    ui.select(null)
+    if (!isRecurring) ui.select(null)
   }
 
   const push = (daysToAdd: number) => {
@@ -97,15 +105,47 @@ export function TaskPanel() {
       {task.notes && <p style={{ color: 'var(--hud-dim)', margin: '8px 0 0' }}>{task.notes}</p>}
 
       <div className="actions">
-        <button className="hud-btn hud-btn--primary" onClick={complete}>
-          Complete
-        </button>
-        <button className="hud-btn" onClick={() => push(1)}>
-          +1d
-        </button>
-        <button className="hud-btn" onClick={() => push(7)}>
-          +1w
-        </button>
+        {isBacklog ? (
+          <button className="hud-btn hud-btn--primary" onClick={() => push(7)}>
+            Schedule +7d
+          </button>
+        ) : isComet ? (
+          <>
+            <button
+              className="hud-btn hud-btn--primary"
+              onClick={() =>
+                store.updateTask(task.id, {
+                  tags: task.tags.filter((t) => t !== 'interrupt'),
+                })
+              }
+            >
+              Capture
+            </button>
+            <button
+              className="hud-btn hud-btn--danger"
+              onClick={() => {
+                store.deleteTask(task.id)
+                ui.select(null)
+              }}
+            >
+              Dismiss
+            </button>
+          </>
+        ) : (
+          <button className="hud-btn hud-btn--primary" onClick={complete}>
+            {isRecurring ? 'Complete cycle' : 'Complete'}
+          </button>
+        )}
+        {!isBacklog && (
+          <>
+            <button className="hud-btn" onClick={() => push(1)}>
+              +1d
+            </button>
+            <button className="hud-btn" onClick={() => push(7)}>
+              +1w
+            </button>
+          </>
+        )}
         <button
           className="hud-btn"
           onClick={() =>
@@ -127,6 +167,19 @@ export function TaskPanel() {
         </button>
         <button className="hud-btn" onClick={() => ui.select(null)}>
           Close
+        </button>
+      </div>
+
+      <div className="actions" style={{ marginTop: 8 }}>
+        <button
+          className="hud-btn"
+          style={{ opacity: 0.55, fontSize: 10 }}
+          onClick={() => {
+            store.archiveProject(task.project)
+            ui.select(null)
+          }}
+        >
+          Collapse “{task.project}” → black hole
         </button>
       </div>
     </div>

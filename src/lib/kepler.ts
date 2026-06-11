@@ -56,6 +56,36 @@ export const ARCHIVE_RADIUS = 85
  * zone edge, this week, this month. */
 export const SNAP_RING_DAYS: readonly number[] = [1, HABITABLE_ZONE_DAYS, 7, 30]
 
+/** The backlog shell: unscheduled tasks drift here, far beyond the
+ * deadline horizon (§3). */
+export const OORT_RADIUS = 120
+
+/** Kepler's third law inverted: the circular radius whose period is T
+ * sim-days. Pulsars use this — their period IS the recurrence interval. */
+export function radiusForPeriod(periodDays: number): number {
+  return Math.pow(periodDays / K_PERIOD, 2 / 3)
+}
+
+/**
+ * Comet (eccentric) orbits — star at the focus. Radius at true anomaly θ
+ * for semi-major axis a, eccentricity e.
+ */
+export function cometRadiusAtAngle(a: number, e: number, theta: number): number {
+  return (a * (1 - e * e)) / (1 + e * Math.cos(theta))
+}
+
+/**
+ * Advance a comet's true anomaly by dtDays conserving angular momentum
+ * (equal areas in equal times): fast at periapsis, slow at apoapsis —
+ * Kepler's second law, the felt-urgency law for interrupts.
+ */
+export function advanceCometAngle(theta: number, a: number, e: number, dtDays: number): number {
+  const meanOmega = angularSpeedForRadius(a)
+  const L = meanOmega * a * a * Math.sqrt(1 - e * e)
+  const r = cometRadiusAtAngle(a, e, theta)
+  return theta + (L / (r * r)) * dtDays
+}
+
 const RADIUS_SPAN = R_HORIZON - R_NOW
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))

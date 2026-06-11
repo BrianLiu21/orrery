@@ -69,10 +69,15 @@ function Remnant({ task }: { task: Task }) {
   )
 }
 
-/** All completed tasks, resting in the archive halo. */
+/** All completed tasks, resting in the archive halo. Tasks of archived
+ * projects are inside their black hole — not shown here. */
 export function Remnants() {
   const tasks = useTaskStore((s) => s.tasks)
-  const done = Object.values(tasks).filter((t) => t.status === 'done')
+  const archivedProjects = useTaskStore((s) => s.archivedProjects)
+  const archived = new Set(archivedProjects)
+  const done = Object.values(tasks).filter(
+    (t) => t.status === 'done' && !archived.has(t.project),
+  )
   return (
     <>
       {done.map((t) => (

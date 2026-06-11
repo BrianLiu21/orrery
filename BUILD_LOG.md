@@ -77,3 +77,23 @@ angles at a cinematic pace. Angle is decorative, radius is semantic — the
 split keeps Kepler ratios exact while making "the star is now" literally
 true. Also: planet kind biased by effort (mass→fate, §5); planetPositions
 registry + __lookAt dev camera as groundwork for M5.
+
+## Milestone 5 — Interactions (`eb39e10`)
+
+Click→eased fly-to with a TaskPanel whose copy is diegetic (deadline =
+"periapsis"); completion = death by mass (nebula puff → white dwarf,
+supernova → neutron star, remnants orbiting the archive halo); overdue =
+spiral past R_NOW to the Roche limit, then a persistent circulating red
+debris scar; birth = accretion swirl + overshoot scale-in; radial
+drag-to-reschedule with magnetic snap rings and mass-scaled inertia.
+Verified live: completions persist + remnants appear; +2.5-day jump put
+two tasks overdue → one shredded to debris, one caught mid-spiral; staged
+supernova capture confirmed the ejecta visual. Judgment calls: (1) death
+effects live in an App-level queue (UI store) at the planet's last
+position, so TaskPlanet unmounts instantly and effects/remnants are
+decoupled; (2) particle gl_PointSize was sub-pixel at system distance —
+switched to physically-derived sizing (world size × perspective pixel
+scale); (3) deselect eases target AND position home; (4) blocked =
+frozen + desaturated (skipped retrograde — frozen reads clearer);
+(5) preview tool's synthetic clicks don't reach React handlers — used
+element.click() via eval for end-to-end button tests.

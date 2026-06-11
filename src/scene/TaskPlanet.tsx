@@ -24,6 +24,7 @@ import { planetTraits } from '../lib/planetTraits'
 import { planetPositions, writePlanetPosition } from '../state/planetPositions'
 import { Orbit } from './Orbit'
 import { PlanetBody } from './PlanetBody'
+import { Moons } from './Moons'
 import { BirthEffect, BIRTH_SECONDS, birthScale } from './effects/BirthEffect'
 import { RocheDebris } from './effects/RocheDebris'
 
@@ -176,6 +177,7 @@ export function TaskPlanet({ task }: { task: Task }) {
             frozen={blocked}
           />
         </group>
+        <Moons parentId={task.id} parentSize={size} accent={accent} />
         {birthAge.current < BIRTH_SECONDS && (
           <BirthEffect size={size} accent={accent} age={birthAge.current} />
         )}

@@ -11,6 +11,11 @@ import { TimeTicker } from './scene/TimeTicker'
 import { SnapRings } from './scene/SnapRings'
 import { Remnants } from './scene/Remnants'
 import { DeathEffects } from './scene/effects/DeathEffect'
+import { ConstellationLines } from './scene/ConstellationLines'
+import { OortCloud } from './scene/OortCloud'
+import { Comet } from './scene/Comet'
+import { Pulsar } from './scene/Pulsar'
+import { BlackHoles } from './scene/BlackHole'
 import { installDevFrameDriver } from './scene/DevFrameDriver'
 import { TaskPanel } from './ui/TaskPanel'
 import { CreateTask } from './ui/CreateTask'
@@ -23,6 +28,19 @@ import './ui/hud.css'
 
 function System({ onSunReady }: { onSunReady: (mesh: Mesh) => void }) {
   const tasks = useTaskStore((s) => s.tasks)
+  const archivedProjects = useTaskStore((s) => s.archivedProjects)
+
+  const archived = new Set(archivedProjects)
+  const visible = Object.values(tasks).filter(
+    (t) => !t.parentId && !archived.has(t.project),
+  )
+  const planets = visible.filter(
+    (t) => t.deadline && t.recurrence === 'none' && !t.tags.includes('interrupt'),
+  )
+  const comets = visible.filter(
+    (t) => t.deadline && t.tags.includes('interrupt') && t.status !== 'done',
+  )
+  const pulsars = visible.filter((t) => t.deadline && t.recurrence !== 'none')
 
   return (
     <>
@@ -31,8 +49,17 @@ function System({ onSunReady }: { onSunReady: (mesh: Mesh) => void }) {
       <SnapRings />
       <Remnants />
       <DeathEffects />
-      {Object.values(tasks).map((task) => (
+      <ConstellationLines />
+      <OortCloud />
+      <BlackHoles />
+      {planets.map((task) => (
         <TaskPlanet key={task.id} task={task} />
+      ))}
+      {comets.map((task) => (
+        <Comet key={task.id} task={task} />
+      ))}
+      {pulsars.map((task) => (
+        <Pulsar key={task.id} task={task} />
       ))}
     </>
   )

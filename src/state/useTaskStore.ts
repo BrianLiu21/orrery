@@ -39,15 +39,25 @@ export function taskMass(task: Pick<Task, 'priority' | 'effort'>): number {
   return task.priority * task.effort
 }
 
+export const RECURRENCE_DAYS: Record<Exclude<Recurrence, 'none'>, number> = {
+  daily: 1,
+  weekly: 7,
+  monthly: 30,
+  custom: 3,
+}
+
 interface TaskStoreState {
   tasks: Record<string, Task>
   completions: CompletionRecord[]
+  /** Projects collapsed into black holes (§5). */
+  archivedProjects: string[]
   addTask: (
     partial: Partial<Task> & Pick<Task, 'title'>,
   ) => Task
   updateTask: (id: string, patch: Partial<Task>) => void
   completeTask: (id: string, atMs: number) => void
   deleteTask: (id: string) => void
+  archiveProject: (project: string) => void
 }
 
 function makeTask(partial: Partial<Task> & Pick<Task, 'title'>): Task {
@@ -82,11 +92,36 @@ function seedTasks(): Record<string, Task> {
     { title: 'Plan the autumn trip', deadline: due(75), priority: 2, effort: 3, project: 'life' },
     { title: 'File taxes', deadline: due(150), priority: 5, effort: 4, project: 'life' },
     { title: 'Write the year-in-review post', deadline: due(320), priority: 2, effort: 3, project: 'research' },
+    // Backlog — drifting in the Oort cloud until scheduled.
+    { title: 'Learn GLSL properly', deadline: null, priority: 2, effort: 4, project: 'research' },
+    { title: 'Digitize old photo albums', deadline: null, priority: 1, effort: 3, project: 'life' },
+    { title: 'Refactor the deploy scripts', deadline: null, priority: 3, effort: 3, project: 'ship' },
+    // An interrupt screaming in on a comet orbit.
+    { title: 'URGENT: prod hotfix', deadline: due(0.8), priority: 5, effort: 2, project: 'ship', tags: ['interrupt'] },
+    // A strict recurring task — born a pulsar.
+    { title: 'Weekly team sync notes', deadline: due(7), priority: 3, effort: 1, project: 'ship', recurrence: 'weekly' },
   ]
   const tasks: Record<string, Task> = {}
+  let parent: Task | null = null
   for (const s of seeds) {
     const t = makeTask(s)
     tasks[t.id] = t
+    if (t.title === 'Draft experiment plan') parent = t
+  }
+  // Subtasks become moons of their parent planet.
+  if (parent) {
+    for (const sub of [
+      { title: 'List candidate datasets', priority: 2 as Priority, effort: 1 },
+      { title: 'Sketch eval harness', priority: 3 as Priority, effort: 2 },
+    ]) {
+      const moon = makeTask({
+        ...sub,
+        deadline: parent.deadline,
+        project: parent.project,
+        parentId: parent.id,
+      })
+      tasks[moon.id] = moon
+    }
   }
   return tasks
 }
@@ -96,6 +131,7 @@ export const useTaskStore = create<TaskStoreState>()(
     (set, get) => ({
       tasks: seedTasks(),
       completions: [],
+      archivedProjects: [],
       addTask: (partial) => {
         const task = makeTask(partial)
         set({ tasks: { ...get().tasks, [task.id]: task } })
@@ -118,6 +154,20 @@ export const useTaskStore = create<TaskStoreState>()(
           mass: taskMass(task),
           completedAt,
         }
+        if (task.recurrence !== 'none' && task.deadline) {
+          // A pulsar never dies — the occurrence completes and the next
+          // one is already inbound: deadline advances one interval.
+          const interval = RECURRENCE_DAYS[task.recurrence] * DAY_MS
+          const next = Math.max(Date.parse(task.deadline) + interval, atMs + interval)
+          set({
+            tasks: {
+              ...get().tasks,
+              [id]: { ...task, deadline: new Date(next).toISOString(), status: 'active' },
+            },
+            completions: [...get().completions, record],
+          })
+          return
+        }
         set({
           tasks: { ...get().tasks, [id]: { ...task, status: 'done', completedAt } },
           completions: [...get().completions, record],
@@ -128,10 +178,18 @@ export const useTaskStore = create<TaskStoreState>()(
         delete tasks[id]
         set({ tasks })
       },
+      archiveProject: (project) => {
+        if (get().archivedProjects.includes(project)) return
+        set({ archivedProjects: [...get().archivedProjects, project] })
+      },
     }),
     {
       name: 'orrery-tasks-v1',
-      partialize: (s) => ({ tasks: s.tasks, completions: s.completions }),
+      partialize: (s) => ({
+        tasks: s.tasks,
+        completions: s.completions,
+        archivedProjects: s.archivedProjects,
+      }),
     },
   ),
 )
