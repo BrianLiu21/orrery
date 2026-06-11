@@ -7,6 +7,7 @@ uniform vec3 uAccent;
 uniform vec3 uLightColor;
 uniform float uRefDist;
 uniform float uRim;
+uniform float uMolten;
 
 varying vec3 vObjPos;
 varying vec3 vWorldPos;
@@ -53,6 +54,15 @@ void main() {
   vec3 V = normalize(cameraPosition - vWorldPos);
   float fres = pow(1.0 - clamp(dot(N, V), 0.0, 1.0), 2.6);
   col += uAccent * fres * uRim * (0.25 + 0.75 * diff);
+
+  // Newborn crust: white-hot magma with crackle veins, cooling to the
+  // final surface as uMolten falls 1 -> 0. HDR so the ignition blooms.
+  if (uMolten > 0.001) {
+    float crackle = 1.0 - abs(snoise(vObjPos * 7.5 + uTime * 0.35));
+    vec3 lava = mix(vec3(1.5, 0.5, 0.18), vec3(1.95, 1.55, 0.95),
+                    smoothstep(0.5, 0.95, crackle));
+    col = mix(col, lava, uMolten);
+  }
 
   gl_FragColor = vec4(col, 1.0);
 }

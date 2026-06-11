@@ -66,15 +66,14 @@ export function TaskPlanet({ task }: { task: Task }) {
   const mass = taskMass(task)
   const traits = useMemo(() => planetTraits(task.id, task.effort), [task.id, task.effort])
   const birthAge = useRef((Date.now() - Date.parse(task.createdAt)) / 1000)
-  const blocked = task.status === 'blocked'
 
   const raycaster = useThree((s) => s.raycaster)
 
   useFrame((_, delta) => {
     const { simNow, flowDays } = useTimeEngine.getState()
-    const dt = blocked ? 0 : prevFlow.current === null ? 0 : flowDays - prevFlow.current
+    const dt = prevFlow.current === null ? 0 : flowDays - prevFlow.current
     prevFlow.current = flowDays
-    birthAge.current += delta
+    birthAge.current += Math.min(delta, 0.1)
 
     const days = task.deadline ? daysUntilDue(task.deadline, simNow) : Number.NaN
     let targetRadius = Number.isNaN(days) ? R_NOW : radiusForDaysUntilDue(days)
@@ -122,16 +121,7 @@ export function TaskPlanet({ task }: { task: Task }) {
       ui.hoveredTaskId === task.id ||
       ui.draggingTaskId === task.id
     const inZone = !Number.isNaN(days) && days >= 0 && days <= HABITABLE_ZONE_DAYS
-    const filteredOut = ui.projectFilter !== null && ui.projectFilter !== task.project
-    const targetOpacity = filteredOut
-      ? 0.04
-      : blocked
-        ? 0.05
-        : engaged
-          ? 0.5
-          : inZone
-            ? 0.38
-            : 0.15
+    const targetOpacity = engaged ? 0.5 : inZone ? 0.38 : 0.15
     orbitOpacity.current +=
       (targetOpacity - orbitOpacity.current) * (1 - Math.exp(-6 * Math.min(delta, 0.1)))
   })
@@ -203,7 +193,7 @@ export function TaskPlanet({ task }: { task: Task }) {
             traits={traits}
             rim={0.12 + task.priority * 0.14}
             alive={task.status === 'active'}
-            frozen={blocked}
+            birthRef={birthAge}
           />
         </group>
         <Moons parentId={task.id} parentSize={size} accent={accent} />

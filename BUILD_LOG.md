@@ -227,3 +227,26 @@ says beacons and shows all milestones complete. Judgment call: deadline
 CREATION during preview still uses simNow (drag-to-radius is relative
 to the previewed star by construction) — only completion records are
 pinned to reality.
+
+## v1.1 — The ambient cut
+
+User decision: make Orrery one-dimensional — a background instrument.
+Removed: time-travel preview (simRate/play/pause/jump UI and engine
+machinery — the clock is now always the wall clock, killing the
+phantom-date bug class at the root), comets, beacons (recurring tasks
+are ordinary planets; the store already advances their deadlines),
+black-hole archives, interactive Oort backlog (shell kept as scenery;
+all tasks have deadlines), galaxy view/picking/SMBH (earned stars now
+live in the sky along the band — the background becomes your work),
+search, project filter, blocked status, and persistent remnant bodies.
+Six files deleted outright. Enhanced instead: birth is now the
+showpiece — 420-particle staggered accretion stream, molten
+crackle-vein crust (uMolten in all three surface shaders, HDR so it
+blooms), ignition shockwave ring + flash at t=0.52, birthScale embryo→
+surge→overshoot choreography, and a rising audio swell timed to
+ignition; birth ages are delta-clamped so background tabs can't skip
+the show. Judgment calls: (1) kepler.ts dropped its comet/period-
+inverse helpers and their verify sections (no callers — the spine only
+carries what the product uses); (2) auto-orbit idle is the defining
+resting state; camera max distance back to 500; (3) the moon system
+stayed — the user explicitly asked for subtask spawning.

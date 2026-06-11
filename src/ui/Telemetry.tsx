@@ -24,21 +24,25 @@ export function Telemetry() {
 
   const [counts, setCounts] = useState({ inZone: 0, overdue: 0, today: 0, streak: 0 })
 
+  const [clock, setClock] = useState('')
+
   useEffect(() => {
     const update = () => {
       const { simNow } = useTimeEngine.getState()
-      const { tasks, completions: comps, archivedProjects } = useTaskStore.getState()
-      const archived = new Set(archivedProjects)
+      const { tasks, completions: comps } = useTaskStore.getState()
       let inZone = 0
       let overdue = 0
       for (const t of Object.values(tasks)) {
-        if (!t.deadline || t.status === 'done' || archived.has(t.project)) continue
+        if (!t.deadline || t.status === 'done') continue
         const days = daysUntilDue(t.deadline, simNow)
         if (days < 0) overdue++
         else if (days <= HABITABLE_ZONE_DAYS) inZone++
       }
       const streak = computeStreak(comps, simNow)
       setCounts({ inZone, overdue, today: completedToday(comps, simNow), streak })
+      const d = new Date(simNow)
+      const pad = (n: number) => String(n).padStart(2, '0')
+      setClock(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`)
     }
     update()
     const timer = setInterval(update, 1000)
@@ -75,6 +79,12 @@ export function Telemetry() {
         <span className="hud-label">Periapsis breaches</span>
         <span className={`hud-num ${counts.overdue > 0 ? 'klaxon-num' : ''}`}>
           {counts.overdue}
+        </span>
+      </div>
+      <div className="hud-row" style={{ marginTop: 6, borderTop: '1px solid var(--hud-border)', paddingTop: 8 }}>
+        <span className="hud-label">Now</span>
+        <span className="hud-num" style={{ color: 'var(--hud-dim)' }}>
+          {clock}
         </span>
       </div>
     </div>

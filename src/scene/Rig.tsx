@@ -7,7 +7,6 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { planetPositions } from '../state/planetPositions'
 import { useTaskStore } from '../state/useTaskStore'
 import { useUiStore } from '../state/useUiStore'
-import { GALAXY_CENTER } from '../lib/galaxy'
 import { planetSize } from './TaskPlanet'
 
 declare global {
@@ -20,11 +19,6 @@ declare global {
 
 const HOME_TARGET = new Vector3(0, 0, 0)
 const HOME_POSITION = new Vector3(0, 58, 145)
-
-// Galaxy view: frame both the system (a bright point at the origin) and
-// the legacy spiral around GALAXY_CENTER — the whole history in one look.
-const GALAXY_TARGET = new Vector3(GALAXY_CENTER[0] * 0.5, GALAXY_CENTER[1] * 0.5, GALAXY_CENTER[2] * 0.5)
-const GALAXY_POSITION = new Vector3(GALAXY_CENTER[0] * 0.5 - 180, 720, GALAXY_CENTER[2] * 0.5 + 760)
 
 const IDLE_SECONDS = 30
 
@@ -62,21 +56,17 @@ export function Rig() {
     const ui = useUiStore.getState()
     const selectedId = ui.selectedTaskId
     const dragging = ui.draggingTaskId !== null
-    const galaxyView = ui.viewMode === 'galaxy'
 
-    // Cinematic auto-orbit after idling in the resting system view.
+    // Cinematic auto-orbit after idling in the resting view — this IS the
+    // background-app mode: the sky slowly turning on your desk.
     c.autoRotate =
-      !galaxyView &&
       !selectedId &&
       !dragging &&
       !document.hidden &&
       performance.now() - lastInteraction.current > IDLE_SECONDS * 1000
     c.autoRotateSpeed = 0.12
 
-    if (galaxyView) {
-      easing.damp3(c.target, GALAXY_TARGET, 0.9, dt)
-      easing.damp3(camera.position, GALAXY_POSITION, 1.1, dt)
-    } else if (selectedId && !dragging) {
+    if (selectedId && !dragging) {
       const pos = planetPositions.get(selectedId)
       const task = useTaskStore.getState().tasks[selectedId]
       if (pos && task) {
@@ -137,7 +127,7 @@ export function Rig() {
       dampingFactor={0.05}
       rotateSpeed={0.6}
       minDistance={5}
-      maxDistance={1800}
+      maxDistance={500}
       maxPolarAngle={Math.PI * 0.55}
     />
   )

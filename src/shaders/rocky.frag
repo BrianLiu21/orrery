@@ -8,6 +8,7 @@ uniform vec3 uAccent;
 uniform vec3 uLightColor;
 uniform float uRefDist;
 uniform float uRim;
+uniform float uMolten;
 uniform float uCityGlow; // 0 = lifeless, 1 = active civilization
 
 varying vec3 vObjPos;
@@ -68,6 +69,15 @@ void main() {
   vec3 V = normalize(cameraPosition - vWorldPos);
   float fres = pow(1.0 - clamp(dot(normalize(vWorldNormal), V), 0.0, 1.0), 3.0);
   col += uAccent * fres * uRim * (0.2 + 0.8 * diff);
+
+  // Newborn crust: white-hot magma with crackle veins, cooling to the
+  // final surface as uMolten falls 1 -> 0. HDR so the ignition blooms.
+  if (uMolten > 0.001) {
+    float crackle = 1.0 - abs(snoise(vObjPos * 7.5 + uTime * 0.35));
+    vec3 lava = mix(vec3(1.5, 0.5, 0.18), vec3(1.95, 1.55, 0.95),
+                    smoothstep(0.5, 0.95, crackle));
+    col = mix(col, lava, uMolten);
+  }
 
   gl_FragColor = vec4(col, 1.0);
 }

@@ -134,8 +134,31 @@ class SoundEngine {
     if (supernova) this.noiseSweep(1.8, 0.12, 500, 60)
   }
 
-  cometWhoosh(): void {
-    this.noiseSweep(1.1, 0.09, 1400, 180)
+  /** Planet birth: a soft rising swell, then a bright shimmer at the
+   * moment of ignition (timed to BirthEffect's choreography). */
+  birth(): void {
+    if (!this.ctx || !this.master) return
+    const t = this.ctx.currentTime
+    // The swell: two detuned voices gliding up an octave.
+    for (const detune of [1, 1.004]) {
+      const osc = this.ctx.createOscillator()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(110 * detune, t)
+      osc.frequency.exponentialRampToValueAtTime(220 * detune, t + 1.7)
+      const gain = this.ctx.createGain()
+      gain.gain.setValueAtTime(0, t)
+      gain.gain.linearRampToValueAtTime(0.06, t + 1.2)
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.4)
+      osc.connect(gain)
+      gain.connect(this.master)
+      osc.start(t)
+      osc.stop(t + 2.5)
+    }
+    // Ignition shimmer (~when the shockwave fires).
+    this.tone(523.25, 1.4, 0.07, 'sine', 1.7)
+    this.tone(659.25, 1.8, 0.05, 'sine', 1.85)
+    this.tone(783.99, 2.2, 0.04, 'sine', 2.0)
+    this.noiseSweep(1.0, 0.05, 300, 2400)
   }
 
   overdueSting(): void {

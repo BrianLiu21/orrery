@@ -93,16 +93,15 @@ function ProjectConstellation({ project }: { project: string }) {
 /** One constellation per project with at least two active planets. */
 export function ConstellationLines() {
   const projects = useTaskStore(
-    useShallow((s) => {
-      const archived = new Set(s.archivedProjects)
-      return [
+    useShallow((s) =>
+      [
         ...new Set(
           Object.values(s.tasks)
-            .filter((t) => !t.parentId && t.deadline && t.status !== 'done' && !archived.has(t.project))
+            .filter((t) => !t.parentId && t.deadline && t.status !== 'done')
             .map((t) => t.project),
         ),
-      ].sort()
-    }),
+      ].sort(),
+    ),
   )
 
   return (

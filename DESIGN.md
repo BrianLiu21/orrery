@@ -223,3 +223,35 @@ Restraint and copywriting over elaborate chrome.
 - Self-critique against §9 before leaving each visual milestone.
 - Keep components small and single-purpose; TS strict, no unjustified `any`.
   Wire tunable params to leva while building, then bake good defaults.
+
+## 13. v1.1 — The ambient cut (canonical scope override)
+
+Decision: Orrery is an **ambient instrument** — something you run in the
+background — not a feature carnival. The metaphor's core carries
+everything; exotica that added dimensions (and bug surface) were removed:
+
+- **No time-travel preview.** The clock is always real (`simNow` ≡ wall
+  clock). This deletes the phantom-data bug class at the root. The only
+  remaining time control is the decorative orbital pace.
+- **No comets, beacons, or black holes.** Urgent work is simply an inner
+  planet; recurring tasks are ordinary planets whose deadlines advance on
+  completion; there is no project archiving.
+- **No Oort backlog bodies.** Every task has a deadline. The Oort shell
+  remains as scenery only.
+- **No galaxy view.** Completions still become permanent earned stars —
+  but in the sky itself, along the galactic band, with no separate camera
+  mode or interaction. The background quietly becomes your work.
+- **No search, project filter, or blocked status.** The sky is the list.
+- Persistent remnant bodies were dropped; the death animation plays and
+  the completion's earned star is the lasting record.
+
+What was enhanced instead: **planet birth** is the showpiece interaction
+— a staggered accretion stream feeds a molten, crackle-veined embryo;
+at ignition a shockwave ring and flash fire while the camera holds the
+newborn close; the crust cools into the final surface over ~4 seconds,
+with a rising audio swell timed to ignition. Idle auto-orbit is the
+default state: the sky slowly turning on your desk.
+
+Sections above describing cut features (§3 rows for comets/beacons/
+black holes/backlog, §5 compact objects, §6 galaxy view) are retained
+as design history but are superseded by this section.

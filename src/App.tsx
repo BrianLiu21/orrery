@@ -9,13 +9,9 @@ import { TaskPlanet } from './scene/TaskPlanet'
 import { HabitableZone } from './scene/HabitableZone'
 import { TimeTicker } from './scene/TimeTicker'
 import { SnapRings } from './scene/SnapRings'
-import { Remnants } from './scene/Remnants'
 import { DeathEffects } from './scene/effects/DeathEffect'
 import { ConstellationLines } from './scene/ConstellationLines'
 import { OortCloud } from './scene/OortCloud'
-import { Comet } from './scene/Comet'
-import { Beacon } from './scene/Beacon'
-import { BlackHoles } from './scene/BlackHole'
 import { Starfield } from './scene/Starfield'
 import { Nebula } from './scene/Nebula'
 import { Galaxy } from './scene/Galaxy'
@@ -34,21 +30,12 @@ import './ui/hud.css'
 
 function System({ onSunReady }: { onSunReady: (mesh: Mesh) => void }) {
   const tasks = useTaskStore((s) => s.tasks)
-  const archivedProjects = useTaskStore((s) => s.archivedProjects)
   // Streak → main-sequence class (wired by Telemetry). Luminosity constant.
   const classTemp = useStarStore((s) => s.classTemp)
 
-  const archived = new Set(archivedProjects)
-  const visible = Object.values(tasks).filter(
-    (t) => !t.parentId && !archived.has(t.project),
-  )
-  const planets = visible.filter(
-    (t) => t.deadline && t.recurrence === 'none' && !t.tags.includes('interrupt'),
-  )
-  const comets = visible.filter(
-    (t) => t.deadline && t.tags.includes('interrupt') && t.status !== 'done',
-  )
-  const beacons = visible.filter((t) => t.deadline && t.recurrence !== 'none')
+  // One kind of body: a task with a deadline is a planet. Recurring tasks
+  // are planets whose deadlines advance on completion.
+  const planets = Object.values(tasks).filter((t) => !t.parentId && t.deadline)
 
   return (
     <>
@@ -58,26 +45,17 @@ function System({ onSunReady }: { onSunReady: (mesh: Mesh) => void }) {
       <Star temp={classTemp} onSurfaceMesh={onSunReady} />
       <HabitableZone />
       <SnapRings />
-      <Remnants />
       <DeathEffects />
       <ConstellationLines />
       <OortCloud />
-      <BlackHoles />
       {planets.map((task) => (
         <TaskPlanet key={task.id} task={task} />
-      ))}
-      {comets.map((task) => (
-        <Comet key={task.id} task={task} />
-      ))}
-      {beacons.map((task) => (
-        <Beacon key={task.id} task={task} />
       ))}
     </>
   )
 }
 
-/** Dev tuning that survives milestone 8: orbit visual pace only — real
- * time controls live in the HUD now. */
+/** Dev tuning: orbit visual pace only. */
 function PaceDevControl() {
   const { visualPace } = useControls('time', {
     visualPace: { value: 0.25, min: 0, max: 3, step: 0.05, label: 'orbit pace (d/s)' },

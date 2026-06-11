@@ -1,5 +1,6 @@
-// Accretion swirl: particles spiral inward and settle onto the forming
-// planet as uProgress runs 0 -> 1.
+// Accretion stream: dust spirals inward and settles onto the forming
+// planet as uProgress runs 0 -> 1. Each particle is staggered by its
+// seed so the in-fall reads as a feeding stream, not a uniform collapse.
 
 attribute float aSeed;
 
@@ -11,22 +12,28 @@ varying float vAlpha;
 varying float vHeat;
 
 void main() {
-  float a0 = aSeed * 6.28318;
   float band = fract(aSeed * 7.31);
-  float r0 = uScale * (2.2 + band * 2.4);
-  float swirl = a0 + uProgress * (5.0 + band * 3.0);
+  float delay = fract(aSeed * 3.17) * 0.4;
+  float t = clamp((uProgress - delay) / max(1.0 - delay, 0.001), 0.0, 1.0);
+  float ease = t * t * (3.0 - 2.0 * t);
 
-  float ease = uProgress * uProgress * (3.0 - 2.0 * uProgress);
-  float r = mix(r0, uScale * 0.35, ease);
-  float y = (fract(aSeed * 13.7) - 0.5) * uScale * 1.1 * (1.0 - ease);
+  float a0 = aSeed * 6.28318;
+  // Inner particles whip around more — Kepler in miniature.
+  float swirl = a0 + ease * (7.0 + band * 5.0) + uProgress * 1.5;
+
+  float r0 = uScale * (2.6 + band * 3.4);
+  float r = mix(r0, uScale * 0.3, ease);
+  float y = (fract(aSeed * 13.7) - 0.5) * uScale * 1.4 * (1.0 - ease);
 
   vec3 pos = vec3(cos(swirl) * r, y, sin(swirl) * r);
 
-  vAlpha = (1.0 - uProgress * uProgress) * (0.5 + 0.5 * band);
+  // Fade out as each particle lands; the stream thins from the outside in.
+  vAlpha = (1.0 - ease * ease) * (0.45 + 0.55 * band);
+  // Heat climbs as the particle falls — white-hot on arrival.
   vHeat = ease;
 
   vec4 mv = modelViewMatrix * vec4(pos, 1.0);
-  float worldSize = uScale * 0.16 * (0.4 + 0.6 * band);
+  float worldSize = uScale * 0.11 * (0.3 + 0.7 * band) * (1.0 + vHeat * 0.6);
   gl_PointSize = worldSize * uPerspScale / max(-mv.z, 0.1);
   gl_Position = projectionMatrix * mv;
 }

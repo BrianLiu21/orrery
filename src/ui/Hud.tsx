@@ -3,8 +3,6 @@ import { useTaskStore } from '../state/useTaskStore'
 import { useTimeEngine } from '../state/useTimeEngine'
 import { daysUntilDue } from '../lib/kepler'
 import { Telemetry } from './Telemetry'
-import { TimeControls } from './TimeControls'
-import { FilterBar } from './FilterBar'
 import { TaskPanel } from './TaskPanel'
 import { CreateTask } from './CreateTask'
 import { DragHud } from './DragHud'
@@ -17,15 +15,10 @@ function Klaxon() {
   useEffect(() => {
     const update = () => {
       const { simNow } = useTimeEngine.getState()
-      const { tasks, archivedProjects } = useTaskStore.getState()
-      const archived = new Set(archivedProjects)
+      const { tasks } = useTaskStore.getState()
       setActive(
         Object.values(tasks).some(
-          (t) =>
-            t.deadline &&
-            t.status !== 'done' &&
-            !archived.has(t.project) &&
-            daysUntilDue(t.deadline, simNow) < 0,
+          (t) => t.deadline && t.status !== 'done' && daysUntilDue(t.deadline, simNow) < 0,
         ),
       )
     }
@@ -55,8 +48,6 @@ export function Hud() {
   return (
     <>
       <Telemetry />
-      <FilterBar />
-      <TimeControls />
       <TaskPanel />
       <CreateTask />
       <DragHud />

@@ -59,11 +59,9 @@ export function TaskPanel() {
   const ui = useUiStore.getState()
   const store = useTaskStore.getState()
 
-  const isBacklog = !task.deadline
-  const isComet = task.tags.includes('interrupt')
   const isRecurring = task.recurrence !== 'none'
   // Moons only render around plain planets — gate spawning to match.
-  const canHaveMoons = !task.parentId && !isBacklog && !isComet && !isRecurring
+  const canHaveMoons = !task.parentId && !!task.deadline && !isRecurring
 
   const addMoon = () => {
     const title = moonTitle.trim()
@@ -186,57 +184,14 @@ export function TaskPanel() {
       )}
 
       <div className="actions">
-        {isBacklog ? (
-          <button className="hud-btn hud-btn--primary" onClick={() => push(7)}>
-            Schedule +7d
-          </button>
-        ) : isComet ? (
-          <>
-            <button
-              className="hud-btn hud-btn--primary"
-              onClick={() => {
-                sound.cometWhoosh()
-                store.updateTask(task.id, {
-                  tags: task.tags.filter((t) => t !== 'interrupt'),
-                })
-              }}
-            >
-              Capture
-            </button>
-            <button
-              className="hud-btn hud-btn--danger"
-              onClick={() => {
-                store.deleteTask(task.id)
-                ui.select(null)
-              }}
-            >
-              Dismiss
-            </button>
-          </>
-        ) : (
-          <button className="hud-btn hud-btn--primary" onClick={complete}>
-            {isRecurring ? 'Complete cycle' : 'Complete'}
-          </button>
-        )}
-        {!isBacklog && (
-          <>
-            <button className="hud-btn" onClick={() => push(1)}>
-              +1d
-            </button>
-            <button className="hud-btn" onClick={() => push(7)}>
-              +1w
-            </button>
-          </>
-        )}
-        <button
-          className="hud-btn"
-          onClick={() =>
-            store.updateTask(task.id, {
-              status: task.status === 'blocked' ? 'active' : 'blocked',
-            })
-          }
-        >
-          {task.status === 'blocked' ? 'Unblock' : 'Block'}
+        <button className="hud-btn hud-btn--primary" onClick={complete}>
+          {isRecurring ? 'Complete cycle' : 'Complete'}
+        </button>
+        <button className="hud-btn" onClick={() => push(1)}>
+          +1d
+        </button>
+        <button className="hud-btn" onClick={() => push(7)}>
+          +1w
         </button>
         <button
           className="hud-btn hud-btn--danger"
@@ -249,19 +204,6 @@ export function TaskPanel() {
         </button>
         <button className="hud-btn" onClick={() => ui.select(null)}>
           Close
-        </button>
-      </div>
-
-      <div className="actions" style={{ marginTop: 8 }}>
-        <button
-          className="hud-btn"
-          style={{ opacity: 0.55, fontSize: 10 }}
-          onClick={() => {
-            store.archiveProject(task.project)
-            ui.select(null)
-          }}
-        >
-          Collapse “{task.project}” → black hole
         </button>
       </div>
     </div>

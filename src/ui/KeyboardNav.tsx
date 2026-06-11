@@ -1,10 +1,7 @@
 import { useEffect } from 'react'
 import { useTaskStore } from '../state/useTaskStore'
-import { useTimeEngine } from '../state/useTimeEngine'
 import { useUiStore } from '../state/useUiStore'
 import { planetPositions } from '../state/planetPositions'
-
-const RATE_STEPS = [1, 60, 3600, 86_400]
 
 function isTyping(): boolean {
   const el = document.activeElement
@@ -22,10 +19,7 @@ function orderedTaskIds(): string[] {
     })
 }
 
-/**
- * Keyboard nav: ←/→ cycle bodies inward/outward, Enter/Esc select/close,
- * Space play/pause, +/- time-lapse, N new body, / focus search.
- */
+/** Keyboard nav: ←/→ cycle bodies inward/outward, Esc closes, N new body. */
 export function KeyboardNav() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -34,7 +28,6 @@ export function KeyboardNav() {
         return
       }
       const ui = useUiStore.getState()
-      const engine = useTimeEngine.getState()
 
       switch (e.key) {
         case 'ArrowRight':
@@ -52,31 +45,10 @@ export function KeyboardNav() {
           ui.select(null)
           ui.setCreateOpen(false)
           break
-        case ' ':
-          e.preventDefault()
-          engine.toggle()
-          break
-        case '+':
-        case '=': {
-          const i = RATE_STEPS.indexOf(engine.simRate)
-          engine.setSimRate(RATE_STEPS[Math.min(i + 1, RATE_STEPS.length - 1)] ?? 1)
-          break
-        }
-        case '-': {
-          const i = RATE_STEPS.indexOf(engine.simRate)
-          engine.setSimRate(RATE_STEPS[Math.max(i - 1, 0)] ?? 1)
-          break
-        }
         case 'n':
         case 'N':
           ui.setCreateOpen(true)
           break
-        case '/': {
-          e.preventDefault()
-          const search = document.querySelector<HTMLInputElement>('.filter-bar input')
-          search?.focus()
-          break
-        }
       }
     }
     window.addEventListener('keydown', onKey)

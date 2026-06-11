@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import {
   AdditiveBlending,
@@ -35,6 +35,7 @@ const GasMaterial = shaderMaterial(
     uLightColor: new Color('#fff1dc'),
     uRefDist: REF_DIST,
     uRim: 0.3,
+    uMolten: 0,
   },
   planetVert,
   gasFrag,
@@ -47,6 +48,7 @@ const RockyMaterial = shaderMaterial(
     uLightColor: new Color('#fff1dc'),
     uRefDist: REF_DIST,
     uRim: 0.3,
+    uMolten: 0,
     uCityGlow: 1,
   },
   planetVert,
@@ -60,6 +62,7 @@ const IceMaterial = shaderMaterial(
     uLightColor: new Color('#fff1dc'),
     uRefDist: REF_DIST,
     uRim: 0.3,
+    uMolten: 0,
   },
   planetVert,
   iceFrag,
@@ -111,22 +114,25 @@ export interface PlanetBodyProps {
   rim: number
   /** City lights on the dark side (active rocky tasks only). */
   alive: boolean
-  /** Blocked tasks: desaturated light, dimmed rim, no spin. */
-  frozen?: boolean
+  /** Seconds since the task was born — drives the molten cool-down. */
+  birthRef?: RefObject<number>
 }
+
+/** Newborn planets glow white-hot and cool into their surface over this
+ * many seconds (a touch longer than the accretion swirl). */
+export const MOLTEN_SECONDS = 4.2
 
 /**
  * The visual body of a task-planet: kind-specific surface shader,
  * atmosphere rim, optional cloud layer and rings. Lighting always comes
  * from the star at the world origin — never any other source.
  */
-export function PlanetBody({ size, accent, traits, rim, alive, frozen = false }: PlanetBodyProps) {
+export function PlanetBody({ size, accent, traits, rim, alive, birthRef }: PlanetBodyProps) {
   const spinGroup = useRef<Group>(null)
   const body = useRef<Mesh>(null)
 
   const accentColor = useMemo(() => new Color(accent), [accent])
   const lightColor = useMemo(() => new Color(), [])
-  const greyColor = useMemo(() => new Color('#8d949b'), [])
 
   const surface = useMemo(() => {
     const Mat =
@@ -188,16 +194,19 @@ export function PlanetBody({ size, accent, traits, rim, alive, frozen = false }:
   useFrame((state, delta) => {
     const t = state.clock.elapsedTime
     stellarLightColor(useStarStore.getState().classTemp, lightColor)
-    if (frozen) lightColor.lerp(greyColor, 0.75)
+    // Molten cool-down: 1 at birth → 0 once the crust settles.
+    const age = birthRef?.current ?? Number.POSITIVE_INFINITY
+    const molten = Math.max(0, 1 - age / MOLTEN_SECONDS)
     setUniforms(surface, {
       uTime: t,
       uLightColor: lightColor,
-      uRim: frozen ? rim * 0.25 : rim,
+      uRim: rim,
       uCityGlow: alive ? 1 : 0,
+      uMolten: molten * molten,
     })
     if (clouds) setUniforms(clouds, { uTime: t, uLightColor: lightColor })
     if (ring) setUniforms(ring, { uLightColor: lightColor })
-    if (spinGroup.current && !frozen) spinGroup.current.rotation.y += delta * traits.spin
+    if (spinGroup.current) spinGroup.current.rotation.y += delta * traits.spin
   })
 
   return (

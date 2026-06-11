@@ -49,15 +49,12 @@ export const RECURRENCE_DAYS: Record<Exclude<Recurrence, 'none'>, number> = {
 interface TaskStoreState {
   tasks: Record<string, Task>
   completions: CompletionRecord[]
-  /** Projects collapsed into black holes (§5). */
-  archivedProjects: string[]
   addTask: (
     partial: Partial<Task> & Pick<Task, 'title'>,
   ) => Task
   updateTask: (id: string, patch: Partial<Task>) => void
   completeTask: (id: string, atMs: number) => void
   deleteTask: (id: string) => void
-  archiveProject: (project: string) => void
 }
 
 function makeTask(partial: Partial<Task> & Pick<Task, 'title'>): Task {
@@ -92,10 +89,7 @@ function seedTasks(): Record<string, Task> {
     { title: 'Renew passport', deadline: due(38), priority: 4, effort: 1, project: 'life' },
     { title: 'File taxes', deadline: due(150), priority: 5, effort: 4, project: 'life' },
     { title: 'Write the year-in-review post', deadline: due(320), priority: 2, effort: 3, project: 'research' },
-    // Backlog — drifting in the Oort cloud until scheduled.
-    { title: 'Learn GLSL properly', deadline: null, priority: 2, effort: 4, project: 'research' },
-    { title: 'Digitize old photo albums', deadline: null, priority: 1, effort: 3, project: 'life' },
-    // A strict recurring task — born a beacon.
+    // Recurring: an ordinary planet whose deadline advances on completion.
     { title: 'Weekly team sync notes', deadline: due(7), priority: 3, effort: 1, project: 'ship', recurrence: 'weekly' },
   ]
   const tasks: Record<string, Task> = {}
@@ -128,7 +122,6 @@ export const useTaskStore = create<TaskStoreState>()(
     (set, get) => ({
       tasks: seedTasks(),
       completions: [],
-      archivedProjects: [],
       addTask: (partial) => {
         const task = makeTask(partial)
         set({ tasks: { ...get().tasks, [task.id]: task } })
@@ -175,17 +168,12 @@ export const useTaskStore = create<TaskStoreState>()(
         delete tasks[id]
         set({ tasks })
       },
-      archiveProject: (project) => {
-        if (get().archivedProjects.includes(project)) return
-        set({ archivedProjects: [...get().archivedProjects, project] })
-      },
     }),
     {
       name: 'orrery-tasks-v1',
       partialize: (s) => ({
         tasks: s.tasks,
         completions: s.completions,
-        archivedProjects: s.archivedProjects,
       }),
     },
   ),

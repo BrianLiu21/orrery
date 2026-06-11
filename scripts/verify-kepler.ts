@@ -8,9 +8,7 @@ import {
   HABITABLE_ZONE_DAYS,
   R_NOW,
   ROCHE_RADIUS,
-  advanceCometAngle,
   angularSpeedForRadius,
-  cometRadiusAtAngle,
   daysUntilDueForRadius,
   decayFractionForOverdueDays,
   decayRadiusForOverdueDays,
@@ -20,7 +18,6 @@ import {
   orbitalPosition,
   periodForRadius,
   radiusForDaysUntilDue,
-  radiusForPeriod,
 } from '../src/lib/kepler'
 
 let failures = 0
@@ -62,31 +59,6 @@ check(
   hz.outer,
   radiusForDaysUntilDue(HABITABLE_ZONE_DAYS),
 )
-
-console.log('\nThird law inverse — pulsar radii')
-for (const T of [1, 7, 30]) {
-  check(`T(radiusForPeriod(${T})) = ${T}`, periodForRadius(radiusForPeriod(T)), T)
-}
-
-console.log('\nComet ellipse — star at the focus')
-{
-  const a = 30
-  const e = 0.84
-  check('periapsis = a(1-e)', cometRadiusAtAngle(a, e, 0), a * (1 - e))
-  check('apoapsis = a(1+e)', cometRadiusAtAngle(a, e, Math.PI), a * (1 + e))
-  // Equal areas: r²·dθ/dt is the same at periapsis and apoapsis.
-  const dt = 1e-6
-  const rPeri = cometRadiusAtAngle(a, e, 0)
-  const rApo = cometRadiusAtAngle(a, e, Math.PI)
-  const dThetaPeri = advanceCometAngle(0, a, e, dt) - 0
-  const dThetaApo = advanceCometAngle(Math.PI, a, e, dt) - Math.PI
-  check(
-    'equal areas: r²dθ at periapsis = r²dθ at apoapsis',
-    rPeri * rPeri * dThetaPeri,
-    rApo * rApo * dThetaApo,
-    1e-12,
-  )
-}
 
 console.log('\nRoche decay — overdue spiral (§5)')
 check('decay radius at 0 days overdue = R_NOW', decayRadiusForOverdueDays(0), R_NOW)

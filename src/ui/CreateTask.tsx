@@ -3,6 +3,7 @@ import { useTaskStore, type Priority } from '../state/useTaskStore'
 import { useTimeEngine } from '../state/useTimeEngine'
 import { useUiStore } from '../state/useUiStore'
 import { DAY_MS } from '../lib/kepler'
+import { sound } from '../lib/sound'
 
 /**
  * Minimal accretion console — milestone 8 gives this its full HUD form.
@@ -29,6 +30,7 @@ export function CreateTask() {
       project: project.trim() || 'inbox',
     })
     useUiStore.getState().select(task.id)
+    sound.birth()
     setTitle('')
     setOpen(false)
   }
