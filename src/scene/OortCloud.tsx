@@ -54,7 +54,7 @@ function OortShell() {
         size: 0.5,
         sizeAttenuation: true,
         transparent: true,
-        opacity: 0.4,
+        opacity: 0.22,
         blending: AdditiveBlending,
         depthWrite: false,
       }),

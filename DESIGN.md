@@ -35,7 +35,7 @@ feature.
 | Effort estimate | Planet **mass** (heavier, slower to drag) — also sets completion fate (see §5) |
 | Subtasks | **Moons** orbiting the planet |
 | Projects | Shared orbital-plane **inclination** + shared accent color + faint constellation line linking members |
-| Recurring task | A **pulsar** (see §5) |
+| Recurring task | A **beacon** (see §5) |
 | Backlog / someday | **Oort cloud**: distant faint icy shell; drag a body inward to assign a deadline and drop it into a real orbit |
 | Urgent unscheduled interrupt | A **comet** on a high-eccentricity orbit with a glowing tail; capture (schedule) or fling away (dismiss) |
 | Focus / "do now" | **Habitable zone** glowing annulus (~next 48h) |
@@ -66,11 +66,13 @@ drifting in the outer **archive halo**. Which one a task becomes is set by the
 task's **mass (priority × effort)** — the real progenitor-mass → endpoint
 relation. Fate is fixed by mass, never earned.
 
-- **Pulsar = a recurring task.** The one *living type*, not a death-state. A
-  recurring task is *born* as a pulsar: a small dense body on a perfectly
+- **Beacon = a recurring task.** The one *living type*, not a death-state. A
+  recurring task is *born* as a beacon: a small bright body on a perfectly
   metronomic circular orbit whose period = the recurrence interval, sweeping a
   lighthouse beam each cycle; each sweep past the "now" meridian marks one
-  occurrence coming due.
+  occurrence coming due. (Deliberately named *beacon*, not *pulsar* — a real
+  neutron star would outmass the central star and shred the system; this body
+  borrows the lighthouse behavior, not the astrophysics.)
 - **Completion = death by mass.** Low-effort task → gentle
   **planetary-nebula** puff → **white dwarf** remnant. High-priority/
   high-effort "massive" task → **supernova** → **neutron-star** remnant. A
@@ -201,7 +203,7 @@ Restraint and copywriting over elaborate chrome.
    terminator, rings.
 5. Interactions — birth animation, fly-to + detail panel, drag-to-reschedule
    with snap rings, completion death-by-mass, overdue Roche decay.
-6. The rest of the metaphor — moons, projects, Oort cloud, comets, pulsars,
+6. The rest of the metaphor — moons, projects, Oort cloud, comets, beacons,
    black-hole archived projects.
 7. Full post + depth — post stack; starfield + nebula + galactic band.
 8. HUD — time controls, telemetry, streak → star color, filter, search,

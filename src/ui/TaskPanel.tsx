@@ -49,7 +49,7 @@ export function TaskPanel() {
 
   const complete = () => {
     if (!isRecurring) {
-      // Death by mass. Recurring tasks are pulsars — they never die,
+      // Death by mass. Recurring tasks are beacons — they never die,
       // their deadline just advances one interval (store handles it).
       const pos = planetPositions.get(task.id)
       ui.pushDeath({

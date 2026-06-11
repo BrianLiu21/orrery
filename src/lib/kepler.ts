@@ -61,7 +61,7 @@ export const SNAP_RING_DAYS: readonly number[] = [1, HABITABLE_ZONE_DAYS, 7, 30]
 export const OORT_RADIUS = 120
 
 /** Kepler's third law inverted: the circular radius whose period is T
- * sim-days. Pulsars use this — their period IS the recurrence interval. */
+ * sim-days. Beacons use this — their period IS the recurrence interval. */
 export function radiusForPeriod(periodDays: number): number {
   return Math.pow(periodDays / K_PERIOD, 2 / 3)
 }
@@ -181,22 +181,35 @@ export function habitableZoneBounds(): { inner: number; outer: number } {
 }
 
 /**
- * Flat XYZ vertex positions tracing one full orbit, for orbit-line
- * geometry. Exactly `segments` points — callers render with LineLoop,
- * which closes the ring itself.
+ * Overdue spiral (Roche decay, §5): radius eases from R_NOW down to the
+ * Roche limit as the task ages past its deadline. Fraction 1 = shredded.
  */
-export function orbitPathPoints(radius: number, inclination = 0, segments = 256): Float32Array {
-  const pts = new Float32Array(segments * 3)
-  const p = { x: 0, y: 0, z: 0 }
+export function decayFractionForOverdueDays(daysOverdue: number): number {
+  return clamp(daysOverdue / DECAY_DAYS, 0, 1)
+}
+
+export function decayRadiusForOverdueDays(daysOverdue: number): number {
+  return R_NOW + (ROCHE_RADIUS - R_NOW) * decayFractionForOverdueDays(daysOverdue)
+}
+
+/**
+ * Unit-circle orbit-ring vertices in the XZ plane plus a per-vertex angle
+ * attribute. Every orbit line shares this geometry and scales it, so
+ * radius changes (the inward contraction of time) rebuild nothing.
+ * Exactly `segments` points — callers render with LineLoop, which closes
+ * the ring itself.
+ */
+export function orbitRingVertices(segments = 256): {
+  positions: Float32Array
+  angles: Float32Array
+} {
+  const positions = new Float32Array(segments * 3)
+  const angles = new Float32Array(segments)
   for (let i = 0; i < segments; i++) {
     const theta = (i / segments) * Math.PI * 2
-    const z = radius * Math.sin(theta)
-    p.x = radius * Math.cos(theta)
-    p.y = z * Math.sin(inclination)
-    p.z = z * Math.cos(inclination)
-    pts[i * 3] = p.x
-    pts[i * 3 + 1] = p.y
-    pts[i * 3 + 2] = p.z
+    positions[i * 3] = Math.cos(theta)
+    positions[i * 3 + 2] = Math.sin(theta)
+    angles[i] = theta
   }
-  return pts
+  return { positions, angles }
 }

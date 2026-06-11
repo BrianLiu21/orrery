@@ -81,24 +81,21 @@ function makeTask(partial: Partial<Task> & Pick<Task, 'title'>): Task {
 function seedTasks(): Record<string, Task> {
   const now = Date.now()
   const due = (days: number) => new Date(now + days * DAY_MS).toISOString()
+  // Calm by default: a representative sky, not a showroom — every exotic
+  // type still appears with real data, the seed just doesn't stack them.
   const seeds: Array<Partial<Task> & Pick<Task, 'title'>> = [
     { title: 'Ship the quarterly report', deadline: due(0.6), priority: 5, effort: 3, project: 'ship' },
     { title: 'Review open pull requests', deadline: due(1.4), priority: 3, effort: 1, project: 'ship' },
     { title: 'Prepare demo for standup', deadline: due(3.2), priority: 4, effort: 2, project: 'ship' },
-    { title: 'Read the attention-survey paper', deadline: due(6), priority: 2, effort: 2, project: 'research' },
     { title: 'Draft experiment plan', deadline: due(11), priority: 4, effort: 4, project: 'research' },
     { title: 'Reproduce baseline results', deadline: due(20), priority: 3, effort: 5, project: 'research' },
     { title: 'Renew passport', deadline: due(38), priority: 4, effort: 1, project: 'life' },
-    { title: 'Plan the autumn trip', deadline: due(75), priority: 2, effort: 3, project: 'life' },
     { title: 'File taxes', deadline: due(150), priority: 5, effort: 4, project: 'life' },
     { title: 'Write the year-in-review post', deadline: due(320), priority: 2, effort: 3, project: 'research' },
     // Backlog — drifting in the Oort cloud until scheduled.
     { title: 'Learn GLSL properly', deadline: null, priority: 2, effort: 4, project: 'research' },
     { title: 'Digitize old photo albums', deadline: null, priority: 1, effort: 3, project: 'life' },
-    { title: 'Refactor the deploy scripts', deadline: null, priority: 3, effort: 3, project: 'ship' },
-    // An interrupt screaming in on a comet orbit.
-    { title: 'URGENT: prod hotfix', deadline: due(0.8), priority: 5, effort: 2, project: 'ship', tags: ['interrupt'] },
-    // A strict recurring task — born a pulsar.
+    // A strict recurring task — born a beacon.
     { title: 'Weekly team sync notes', deadline: due(7), priority: 3, effort: 1, project: 'ship', recurrence: 'weekly' },
   ]
   const tasks: Record<string, Task> = {}
@@ -155,7 +152,7 @@ export const useTaskStore = create<TaskStoreState>()(
           completedAt,
         }
         if (task.recurrence !== 'none' && task.deadline) {
-          // A pulsar never dies — the occurrence completes and the next
+          // A beacon never dies — the occurrence completes and the next
           // one is already inbound: deadline advances one interval.
           const interval = RECURRENCE_DAYS[task.recurrence] * DAY_MS
           const next = Math.max(Date.parse(task.deadline) + interval, atMs + interval)

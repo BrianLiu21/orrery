@@ -5,11 +5,12 @@ import { useTaskStore, taskMass, type Task } from '../state/useTaskStore'
 import { useTimeEngine } from '../state/useTimeEngine'
 import { useUiStore } from '../state/useUiStore'
 import {
-  DECAY_DAYS,
+  HABITABLE_ZONE_DAYS,
   R_NOW,
-  ROCHE_RADIUS,
   advanceAngle,
   daysUntilDue,
+  decayFractionForOverdueDays,
+  decayRadiusForOverdueDays,
   phaseFromHash,
   planePosition,
   radiusForDaysUntilDue,
@@ -55,6 +56,7 @@ export function TaskPlanet({ task }: { task: Task }) {
   const hitPoint = useRef(new Vector3())
   const dragRadius = useRef<number | null>(null)
   const visualRadius = useRef<number | null>(null)
+  const orbitOpacity = useRef(0.1)
   const [shredded, setShredded] = useState(false)
 
   const accent = projectAccent(task.project)
@@ -76,11 +78,11 @@ export function TaskPlanet({ task }: { task: Task }) {
     const days = task.deadline ? daysUntilDue(task.deadline, simNow) : Number.NaN
     let targetRadius = Number.isNaN(days) ? R_NOW : radiusForDaysUntilDue(days)
 
-    // Overdue: spiral past R_NOW toward the Roche limit.
+    // Overdue: spiral past R_NOW toward the Roche limit (curve owned by
+    // kepler.ts — the spine, not this component).
     if (!Number.isNaN(days) && days < 0 && task.status !== 'done') {
-      const decay = Math.min(-days / DECAY_DAYS, 1)
-      targetRadius = R_NOW + (ROCHE_RADIUS - R_NOW) * decay
-      const isShredded = decay >= 1
+      targetRadius = decayRadiusForOverdueDays(-days)
+      const isShredded = decayFractionForOverdueDays(-days) >= 1
       if (isShredded !== shredded) setShredded(isShredded)
     } else if (shredded) {
       setShredded(false)
@@ -105,6 +107,18 @@ export function TaskPlanet({ task }: { task: Task }) {
       planet.current.scale.setScalar(birthScale(birthAge.current))
     }
     if (orbit.current) orbit.current.scale.setScalar(radius)
+
+    // Quiet pass: rings earn brightness by relevance — engaged or in the
+    // zone glows, everything else recedes so the sky stays calm.
+    const ui = useUiStore.getState()
+    const engaged =
+      ui.selectedTaskId === task.id ||
+      ui.hoveredTaskId === task.id ||
+      ui.draggingTaskId === task.id
+    const inZone = !Number.isNaN(days) && days >= 0 && days <= HABITABLE_ZONE_DAYS
+    const targetOpacity = blocked ? 0.05 : engaged ? 0.5 : inZone ? 0.38 : 0.15
+    orbitOpacity.current +=
+      (targetOpacity - orbitOpacity.current) * (1 - Math.exp(-6 * Math.min(delta, 0.1)))
   })
 
   useEffect(() => () => void planetPositions.delete(task.id), [task.id])
@@ -159,7 +173,7 @@ export function TaskPlanet({ task }: { task: Task }) {
 
   return (
     <group rotation-x={inclination}>
-      <Orbit ref={orbit} color={accent} opacity={blocked ? 0.12 : 0.3} />
+      <Orbit ref={orbit} color={accent} headRef={angle} opacityRef={orbitOpacity} />
       <group ref={planet}>
         <group
           onPointerDown={onPointerDown}

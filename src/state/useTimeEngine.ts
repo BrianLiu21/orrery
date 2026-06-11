@@ -21,6 +21,11 @@ interface TimeEngineState {
   simRate: number
   /** Sim-days of orbital flow per real second (visual pace only). */
   visualDaysPerSec: number
+  /** simNow − Date.now(). At simRate 1, simNow is DERIVED from the wall
+   * clock through this anchor, never integrated from frame deltas — so a
+   * hidden tab or stalled frame loop can never make the star drift away
+   * from NOW. */
+  anchorMs: number
   play: () => void
   pause: () => void
   toggle: () => void
@@ -38,19 +43,26 @@ export const useTimeEngine = create<TimeEngineState>()((set, get) => ({
   playing: true,
   simRate: 1,
   visualDaysPerSec: 0.25,
-  play: () => set({ playing: true }),
+  anchorMs: 0,
+  // Resuming re-anchors so paused time doesn't lurch forward.
+  play: () => set({ playing: true, anchorMs: get().simNow - Date.now() }),
   pause: () => set({ playing: false }),
-  toggle: () => set({ playing: !get().playing }),
-  setSimRate: (multiplier) => set({ simRate: Math.max(0, multiplier) }),
+  toggle: () => (get().playing ? get().pause() : get().play()),
+  setSimRate: (multiplier) =>
+    set({ simRate: Math.max(0, multiplier), anchorMs: get().simNow - Date.now() }),
   setVisualPace: (daysPerSecond) => set({ visualDaysPerSec: Math.max(0, daysPerSecond) }),
-  jumpTo: (epochMs) => set({ simNow: epochMs }),
-  jumpToNow: () => set({ simNow: Date.now() }),
+  jumpTo: (epochMs) => set({ simNow: epochMs, anchorMs: epochMs - Date.now() }),
+  jumpToNow: () => set({ simNow: Date.now(), anchorMs: 0 }),
   tick: (deltaSeconds) => {
-    const { playing, simRate, visualDaysPerSec, simNow, flowDays } = get()
+    const { playing, simRate, visualDaysPerSec, simNow, flowDays, anchorMs } = get()
     if (!playing || deltaSeconds <= 0) return
-    set({
-      simNow: simNow + deltaSeconds * 1000 * simRate,
-      flowDays: flowDays + deltaSeconds * visualDaysPerSec,
-    })
+    const next =
+      simRate === 1
+        ? { simNow: Date.now() + anchorMs }
+        : (() => {
+            const advanced = simNow + deltaSeconds * 1000 * simRate
+            return { simNow: advanced, anchorMs: advanced - Date.now() }
+          })()
+    set({ ...next, flowDays: flowDays + deltaSeconds * visualDaysPerSec })
   },
 }))

@@ -4,15 +4,23 @@
  * habitable-zone bounds. Run with `npm run verify:kepler`.
  */
 import {
+  DECAY_DAYS,
   HABITABLE_ZONE_DAYS,
   R_NOW,
+  ROCHE_RADIUS,
+  advanceCometAngle,
   angularSpeedForRadius,
+  cometRadiusAtAngle,
   daysUntilDueForRadius,
+  decayFractionForOverdueDays,
+  decayRadiusForOverdueDays,
   habitableZoneBounds,
+  orbitRingVertices,
   orbitalAngle,
   orbitalPosition,
   periodForRadius,
   radiusForDaysUntilDue,
+  radiusForPeriod,
 } from '../src/lib/kepler'
 
 let failures = 0
@@ -54,6 +62,56 @@ check(
   hz.outer,
   radiusForDaysUntilDue(HABITABLE_ZONE_DAYS),
 )
+
+console.log('\nThird law inverse — pulsar radii')
+for (const T of [1, 7, 30]) {
+  check(`T(radiusForPeriod(${T})) = ${T}`, periodForRadius(radiusForPeriod(T)), T)
+}
+
+console.log('\nComet ellipse — star at the focus')
+{
+  const a = 30
+  const e = 0.84
+  check('periapsis = a(1-e)', cometRadiusAtAngle(a, e, 0), a * (1 - e))
+  check('apoapsis = a(1+e)', cometRadiusAtAngle(a, e, Math.PI), a * (1 + e))
+  // Equal areas: r²·dθ/dt is the same at periapsis and apoapsis.
+  const dt = 1e-6
+  const rPeri = cometRadiusAtAngle(a, e, 0)
+  const rApo = cometRadiusAtAngle(a, e, Math.PI)
+  const dThetaPeri = advanceCometAngle(0, a, e, dt) - 0
+  const dThetaApo = advanceCometAngle(Math.PI, a, e, dt) - Math.PI
+  check(
+    'equal areas: r²dθ at periapsis = r²dθ at apoapsis',
+    rPeri * rPeri * dThetaPeri,
+    rApo * rApo * dThetaApo,
+    1e-12,
+  )
+}
+
+console.log('\nRoche decay — overdue spiral (§5)')
+check('decay radius at 0 days overdue = R_NOW', decayRadiusForOverdueDays(0), R_NOW)
+check(
+  `decay radius at DECAY_DAYS (${DECAY_DAYS}) = Roche limit`,
+  decayRadiusForOverdueDays(DECAY_DAYS),
+  ROCHE_RADIUS,
+)
+check('decay clamps past the limit', decayRadiusForOverdueDays(DECAY_DAYS * 9), ROCHE_RADIUS)
+check('shred fraction at half decay', decayFractionForOverdueDays(DECAY_DAYS / 2), 0.5)
+
+console.log('\nOrbit ring vertices — unit circle')
+{
+  const { positions, angles } = orbitRingVertices(64)
+  let maxErr = 0
+  for (let i = 0; i < 64; i++) {
+    const x = positions[i * 3] ?? 0
+    const y = positions[i * 3 + 1] ?? 0
+    const z = positions[i * 3 + 2] ?? 0
+    maxErr = Math.max(maxErr, Math.abs(Math.hypot(x, y, z) - 1))
+  }
+  // Float32Array storage quantizes to fp32 — tolerance reflects that.
+  check('all vertices on the unit circle', maxErr, 0, 1e-6)
+  check('angle attribute spans the loop', angles[63] ?? 0, ((64 - 1) / 64) * Math.PI * 2, 1e-6)
+}
 
 if (failures > 0) {
   throw new Error(`${failures} Kepler check(s) FAILED`)

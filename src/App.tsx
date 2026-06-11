@@ -14,8 +14,10 @@ import { DeathEffects } from './scene/effects/DeathEffect'
 import { ConstellationLines } from './scene/ConstellationLines'
 import { OortCloud } from './scene/OortCloud'
 import { Comet } from './scene/Comet'
-import { Pulsar } from './scene/Pulsar'
+import { Beacon } from './scene/Beacon'
 import { BlackHoles } from './scene/BlackHole'
+import { Starfield } from './scene/Starfield'
+import { Nebula } from './scene/Nebula'
 import { installDevFrameDriver } from './scene/DevFrameDriver'
 import { TaskPanel } from './ui/TaskPanel'
 import { CreateTask } from './ui/CreateTask'
@@ -40,10 +42,12 @@ function System({ onSunReady }: { onSunReady: (mesh: Mesh) => void }) {
   const comets = visible.filter(
     (t) => t.deadline && t.tags.includes('interrupt') && t.status !== 'done',
   )
-  const pulsars = visible.filter((t) => t.deadline && t.recurrence !== 'none')
+  const beacons = visible.filter((t) => t.deadline && t.recurrence !== 'none')
 
   return (
     <>
+      <Starfield />
+      <Nebula />
       <Star onSurfaceMesh={onSunReady} />
       <HabitableZone />
       <SnapRings />
@@ -58,8 +62,8 @@ function System({ onSunReady }: { onSunReady: (mesh: Mesh) => void }) {
       {comets.map((task) => (
         <Comet key={task.id} task={task} />
       ))}
-      {pulsars.map((task) => (
-        <Pulsar key={task.id} task={task} />
+      {beacons.map((task) => (
+        <Beacon key={task.id} task={task} />
       ))}
     </>
   )

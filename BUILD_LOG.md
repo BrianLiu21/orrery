@@ -97,3 +97,47 @@ scale); (3) deselect eases target AND position home; (4) blocked =
 frozen + desaturated (skipped retrograde — frozen reads clearer);
 (5) preview tool's synthetic clicks don't reach React handlers — used
 element.click() via eval for end-to-end button tests.
+
+## Milestone 6 — The rest of the metaphor (`a12d575`)
+
+Moons (subtasks), per-project constellation lines, the Oort backlog shell
+with drag-inward-to-schedule planetesimals, comets (interrupts) on
+eccentric orbits whose inbound radius still obeys deadline→radius,
+metronomic pulsars for recurring tasks (complete-cycle advances the
+deadline; pulsars never die), and black-hole project archives. Judgment
+calls: (1) pulsar period = recurrence interval is the one deliberate
+Kepler exception (spec §5 overrides §2) — daily pulsars clamp just
+outside the star since their true radius would be inside it; (2) comets
+snap to the inbound ellipse branch matching their deadline radius each
+frame rather than integrating — slow drift, no angle state to corrupt;
+(3) moons are decorative clocks (fixed pace) since subtask deadlines
+follow their parent; (4) constellation lines include comets and pulsars
+(they ARE project members); (5) archived projects hide their backlog and
+remnants too — everything is inside the hole; black-hole remnant sparks
+approximate "finished subtasks still circle it" cheaply; (6) no
+unarchive in v1 (one-way collapse, like the metaphor).
+
+## Review fixes + beacon + quiet pass + Milestone 7
+
+A 34-agent adversarial review of milestones 2–5 confirmed four findings,
+all fixed: simNow now anchors to the wall clock at simRate 1 (the star
+can never silently drift away from NOW — previously a hidden tab froze
+it permanently behind); the Roche decay curve moved into kepler.ts; the
+debris scar got a click target so shredded tasks stay reschedulable; the
+orbit-ring unit circle now comes from kepler.ts and the dead
+orbitPathPoints export is gone. verify:kepler grew checks for the
+third-law inverse, comet focus geometry + equal-areas, decay bounds, and
+ring vertices. Two user decisions landed: **pulsar → beacon** (a real
+neutron star would outmass the central star — the body keeps the
+lighthouse behavior, drops the astrophysical claim) and the **quiet
+pass** (rings earn brightness by relevance; constellations light only
+for the focused project; Oort dimmed; the demo seed slimmed from
+showroom to representative). Milestone 7 then completed the deep-space
+stage: three instanced starfield layers with stellar-class colors and a
+galactic-band layer, six nebula billboards, the orbit-line
+gradient/pulse shader, and the full post chain (GodRays → DoF that eases
+focus to the selection → selective Bloom → chromatic aberration →
+vignette → grain → ACES/AgX → SMAA). Judgment calls: idle ring opacity
+0.15 (0.10 read as dead); DoF home focus is the star with a wide
+worldFocusRange so the resting view stays crisp; SMAA last, on the
+tone-mapped frame.

@@ -12,13 +12,15 @@ import { writePlanetPosition, planetPositions } from '../state/planetPositions'
 import { useEffect } from 'react'
 
 /**
- * A recurring task is BORN a pulsar (DESIGN.md §5): a small dense body on
- * a perfectly metronomic circular orbit whose period equals the
- * recurrence interval, sweeping a lighthouse beam each cycle. The one
- * deliberate Kepler exception — its period is fixed by the recurrence,
- * so daily pulsars clamp just outside the star rather than inside it.
+ * A recurring task is BORN a beacon (DESIGN.md §5): a small bright body
+ * on a perfectly metronomic circular orbit whose period equals the
+ * recurrence interval, sweeping a lighthouse beam each cycle. (Named
+ * beacon, not pulsar — a real neutron star would outmass the central
+ * star; this is a lighthouse, not a remnant.) The one deliberate Kepler
+ * exception — its period is fixed by the recurrence, so daily beacons
+ * clamp just outside the star rather than inside it.
  */
-export function Pulsar({ task }: { task: Task }) {
+export function Beacon({ task }: { task: Task }) {
   const group = useRef<Group>(null)
   const beams = useRef<Group>(null)
   const hash = useMemo(() => hashString(task.id), [task.id])

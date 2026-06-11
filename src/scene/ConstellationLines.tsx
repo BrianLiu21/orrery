@@ -10,6 +10,7 @@ import {
 } from 'three'
 import { useShallow } from 'zustand/react/shallow'
 import { useTaskStore } from '../state/useTaskStore'
+import { useUiStore } from '../state/useUiStore'
 import { planetPositions } from '../state/planetPositions'
 import { projectAccent } from '../lib/projects'
 
@@ -39,7 +40,7 @@ function ProjectConstellation({ project }: { project: string }) {
     const m = new LineBasicMaterial({
       color: projectAccent(project),
       transparent: true,
-      opacity: 0.12,
+      opacity: 0,
       blending: AdditiveBlending,
       depthWrite: false,
     })
@@ -56,7 +57,7 @@ function ProjectConstellation({ project }: { project: string }) {
     [lineObj],
   )
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     const geometry = lineObj.geometry
     const attr = geometry.getAttribute('position') as BufferAttribute
     // Sort members by current orbital radius so the line sweeps outward
@@ -71,7 +72,17 @@ function ProjectConstellation({ project }: { project: string }) {
     }
     attr.needsUpdate = true
     geometry.setDrawRange(0, pts.length)
-    lineObj.visible = pts.length >= 2
+
+    // Quiet pass: constellations only light up when their project is in
+    // focus (a member hovered or selected); otherwise barely-there.
+    const ui = useUiStore.getState()
+    const tasks = useTaskStore.getState().tasks
+    const focusId = ui.hoveredTaskId ?? ui.selectedTaskId
+    const focused = focusId ? tasks[focusId]?.project === project : false
+    const material = lineObj.material as LineBasicMaterial
+    const target = focused ? 0.22 : 0.025
+    material.opacity += (target - material.opacity) * (1 - Math.exp(-5 * Math.min(delta, 0.1)))
+    lineObj.visible = pts.length >= 2 && material.opacity > 0.008
   })
 
   if (memberIds.length < 2) return null
