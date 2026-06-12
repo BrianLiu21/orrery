@@ -69,8 +69,20 @@ export function TaskPanel() {
   const isRecurring = task.recurrence !== 'none'
   // Moons only render around plain planets — gate spawning to match.
   const canHaveMoons = !task.parentId && !!task.deadline && !isRecurring
-  // Chained step still waiting on its predecessor.
-  const dormant = !!predecessor && predecessor.status !== 'done'
+  // Dormant: not yet ignited — waiting on its slot start, its chain
+  // predecessor, or both (whichever fires first wakes it).
+  const chainBlocked = !!predecessor && predecessor.status !== 'done'
+  const slotPending = !task.ignitedAt && !!task.startAt
+  const dormant = !task.ignitedAt && (chainBlocked || slotPending)
+  const slotLabel = task.startAt
+    ? new Date(task.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : null
+  const dormantNote =
+    slotPending && chainBlocked
+      ? `Dormant — ignites ${slotLabel} or when “${predecessor?.title}” completes`
+      : slotPending
+        ? `Dormant — ignites at ${slotLabel}`
+        : `Dormant — awaits “${predecessor?.title}”`
 
   const addMoon = () => {
     const title = moonTitle.trim()
@@ -197,9 +209,7 @@ export function TaskPanel() {
 
       <div className="actions">
         {dormant ? (
-          <span className="hud-label dormant-note">
-            Dormant — awaits “{predecessor?.title}”
-          </span>
+          <span className="hud-label dormant-note">{dormantNote}</span>
         ) : (
           <button className="hud-btn hud-btn--primary" onClick={complete}>
             {isRecurring ? 'Complete cycle' : 'Complete'}

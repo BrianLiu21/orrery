@@ -25,6 +25,20 @@ export function TimeTicker() {
     const { tasks, updateTask } = useTaskStore.getState()
     for (const task of Object.values(tasks)) {
       if (!task.deadline) continue
+      // Slot start reached: the seed ignites on schedule, whether or not
+      // its chain predecessor finished (time outranks the chain — the
+      // 16:30 happens regardless; the link is consumed).
+      if (
+        !task.ignitedAt &&
+        task.startAt &&
+        task.status !== 'done' &&
+        Date.parse(task.startAt) <= simNow
+      ) {
+        updateTask(task.id, {
+          ignitedAt: new Date(simNow).toISOString(),
+          chainPrevId: null,
+        })
+      }
       const days = daysUntilDue(task.deadline, simNow)
       if (task.status === 'active' && days < 0) {
         updateTask(task.id, { status: 'overdue' })

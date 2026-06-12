@@ -72,12 +72,20 @@ export function TaskPlanet({ task }: { task: Task }) {
   const isDying = () =>
     useUiStore.getState().deaths.some((d) => d.taskId === task.id)
 
-  // Chained step: a dormant seed until its predecessor completes (the
-  // store clears the link and stamps ignitedAt at that moment).
+  // Dormant seed: not yet ignited. Ignition comes from whichever fires
+  // first — the slot start (TimeTicker stamps ignitedAt) or the chain
+  // predecessor completing (the store stamps it). Once ignitedAt exists
+  // the task is permanently live.
   const dormant = useTaskStore((s) => {
-    if (!task.chainPrevId) return false
-    const pred = s.tasks[task.chainPrevId]
-    return !!pred && pred.status !== 'done'
+    if (task.ignitedAt) return false
+    const chainBlocked = task.chainPrevId
+      ? (() => {
+          const pred = s.tasks[task.chainPrevId!]
+          return !!pred && pred.status !== 'done'
+        })()
+      : false
+    const slotPending = !!task.startAt
+    return chainBlocked || slotPending
   })
 
   // Ignition: when ignitedAt lands (chain unlock), restart the birth

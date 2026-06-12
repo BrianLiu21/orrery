@@ -10,6 +10,7 @@ import coronaFrag from '../shaders/corona.frag'
 import { STAR_RADIUS } from '../lib/kepler'
 import { stellarLightColor } from '../lib/stellar'
 import { makeHaloTexture, makeStreakTexture } from '../lib/textures'
+import { useStarStore } from '../state/useStarStore'
 import { setUniforms } from '../lib/uniforms'
 import { Prominences } from './Prominences'
 
@@ -80,16 +81,24 @@ export function Star({ temp, onSurfaceMesh }: StarProps) {
 
   useFrame((state) => {
     const t = state.clock.elapsedTime
+    // Intraday mood: today's completions make the surface churn faster,
+    // shimmer a touch hotter, and the corona breathe brighter. Class
+    // identity (uTemp's base) and luminosity stay streak-owned (§4).
+    const activity = useStarStore.getState().activity
     setUniforms(surfaceMat, {
       uTime: t,
-      uTemp: classTemp,
+      uTemp: Math.min(classTemp + activity * 0.06, 1),
       uGranScale: c.granScale,
       uWarp: c.warp,
       uSpotAmount: c.spots,
       uBrightness: c.brightness,
-      uFlowSpeed: c.flowSpeed,
+      uFlowSpeed: c.flowSpeed * (1 + activity * 1.4),
     })
-    setUniforms(coronaMat, { uTime: t, uTemp: classTemp, uIntensity: c.coronaIntensity })
+    setUniforms(coronaMat, {
+      uTime: t,
+      uTemp: Math.min(classTemp + activity * 0.06, 1),
+      uIntensity: c.coronaIntensity * (1 + activity * 0.45),
+    })
   })
 
   const surfaceRef = useCallback(

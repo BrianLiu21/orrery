@@ -14,6 +14,7 @@ import promVert from '../shaders/prominence.vert'
 import promFrag from '../shaders/prominence.frag'
 import { STAR_RADIUS } from '../lib/kepler'
 import { mulberry32 } from '../lib/stellar'
+import { useStarStore } from '../state/useStarStore'
 import { setUniforms } from '../lib/uniforms'
 
 const ProminenceMaterial = shaderMaterial(
@@ -96,7 +97,8 @@ export function Prominences({ temp, intensity = 1.6 }: { temp: number; intensity
       setUniforms(arc.material, {
         uTime: state.clock.elapsedTime,
         uTemp: temp,
-        uIntensity: intensity,
+        // Stormy days throw bigger arcs (intraday solar activity).
+        uIntensity: intensity * (1 + useStarStore.getState().activity * 1.6),
       })
     }
   })

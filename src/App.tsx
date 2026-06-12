@@ -74,6 +74,7 @@ declare global {
       tasks: typeof useTaskStore
       ui: typeof useUiStore
       quality: typeof useQualityStore
+      star: typeof useStarStore
       positions: typeof planetPositions
     }
   }
@@ -90,6 +91,7 @@ export default function App() {
         tasks: useTaskStore,
         ui: useUiStore,
         quality: useQualityStore,
+        star: useStarStore,
         positions: planetPositions,
       }
     }

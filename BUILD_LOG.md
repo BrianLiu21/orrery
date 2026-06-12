@@ -311,3 +311,26 @@ return). Verified live: 3-step chained plan → seeds dormant with
 correct panel copy → completing step 1 ran the full ceremony and
 ignited step 2 (link consumed, ignitedAt stamped) while step 3 kept
 sleeping; zero console errors.
+
+## Slots, first-of ignition, and the star's mood
+
+Planner rows now take START and END times (end defaults to the next
+row's start; last row gets end-of-day; a slot whose end already passed
+rolls whole to tomorrow; overnight slots wrap). End = deadline, start =
+scheduled ignition: a slotted task sleeps as a dormant seed and IGNITES
+at whichever comes first — its start time (TimeTicker stamps it, full
+birth ceremony, time outranks the chain because the 16:30 happens
+whether or not you're ready) or its chain predecessor completing (flow
+acceleration when ahead of schedule). Every breach is therefore a world
+that actually lived — seeds can no longer die in their sleep. The panel
+explains dormancy precisely ("ignites at 18:00", "awaits X", or both).
+Second system: SOLAR ACTIVITY — each completion adds heat with a 5h
+half-life (lib/streak.solarActivity); the star's mood rises with it:
+faster granulation churn, brighter corona breathing, bigger prominence
+arcs, a half-subclass shimmer. Class identity and luminosity stay
+streak-owned (§4): volume → galaxy, consistency → class, today's fire →
+mood. Verified live: a 6s-out slot probe ignited on schedule with link
+consumed; planner slots resolved correctly (explicit end, default-to-
+next-start, end-of-day); completing Slot A ignited Slot B before its
+19:00 slot (first-of, chain side); activity read 0.26 from decaying
+history. Zero errors.

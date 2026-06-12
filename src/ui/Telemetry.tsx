@@ -4,7 +4,7 @@ import { useTaskStore } from '../state/useTaskStore'
 import { useTimeEngine } from '../state/useTimeEngine'
 import { useStarStore } from '../state/useStarStore'
 import { daysUntilDue, HABITABLE_ZONE_DAYS } from '../lib/kepler'
-import { completedToday, computeStreak, streakToClassTemp } from '../lib/streak'
+import { completedToday, computeStreak, solarActivity, streakToClassTemp } from '../lib/streak'
 
 const CLASS_NAMES = ['M', 'K', 'G', 'F', 'A'] as const
 
@@ -40,6 +40,9 @@ export function Telemetry() {
       }
       const streak = computeStreak(comps, simNow)
       setCounts({ inZone, overdue, today: completedToday(comps, simNow), streak })
+      // The star's mood: today's completions keep it stormy, decaying
+      // overnight. Class identity stays owned by the streak below.
+      useStarStore.getState().setActivity(solarActivity(comps, simNow))
       const d = new Date(simNow)
       const pad = (n: number) => String(n).padStart(2, '0')
       setClock(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`)

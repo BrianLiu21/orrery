@@ -45,3 +45,27 @@ export function completedToday(
 export function streakToClassTemp(streak: number): number {
   return Math.min(1, Math.max(0.08, Math.log2(streak + 1) / 5))
 }
+
+/** Solar-activity half-life: how long today's fire keeps the star stormy. */
+const ACTIVITY_HALF_LIFE_H = 5
+
+/**
+ * Intraday solar activity 0..1 — the star's MOOD, distinct from its
+ * class. Each completion adds heat that decays with a ~5h half-life, so
+ * a productive evening leaves the star gently simmering at dawn and a
+ * hot streak of completions makes it visibly stormy. Class (identity)
+ * stays owned by the multi-day streak; this never moves luminosity.
+ */
+export function solarActivity(
+  completions: readonly CompletionRecord[],
+  nowMs: number,
+): number {
+  let heat = 0
+  for (const c of completions) {
+    const ageH = (nowMs - Date.parse(c.completedAt)) / 3_600_000
+    if (ageH < 0 || ageH > 48) continue
+    heat += Math.pow(0.5, ageH / ACTIVITY_HALF_LIFE_H)
+  }
+  // ~3.5 fresh completions = full storm.
+  return Math.min(heat / 3.5, 1)
+}

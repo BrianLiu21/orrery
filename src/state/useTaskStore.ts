@@ -27,8 +27,12 @@ export interface Task {
    * link is consumed on unlock (cleared), so it works for recurring
    * predecessors too. */
   chainPrevId?: string | null
+  /** Scheduled slot start (ISO). A task with a future startAt sleeps as
+   * a dormant seed and ignites when the clock reaches it — or when its
+   * chain predecessor completes, whichever comes FIRST. */
+  startAt?: string | null
   /** When the task became a live planet. Birth visuals key off this;
-   * chained steps get it stamped at unlock. Defaults to createdAt. */
+   * stamped at chain unlock or slot start. Defaults to createdAt. */
   ignitedAt?: string
 }
 
