@@ -56,8 +56,8 @@ export const ARCHIVE_RADIUS = 85
  * zone edge, this week, this month. */
 export const SNAP_RING_DAYS: readonly number[] = [1, HABITABLE_ZONE_DAYS, 7, 30]
 
-/** The backlog shell: unscheduled tasks drift here, far beyond the
- * deadline horizon (§3). */
+/** The Oort shell — scenery at the edge of the system, far beyond the
+ * deadline horizon (§13: pure depth cue since the ambient cut). */
 export const OORT_RADIUS = 120
 
 const RADIUS_SPAN = R_HORIZON - R_NOW

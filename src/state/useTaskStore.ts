@@ -10,7 +10,8 @@ export interface Task {
   id: string
   title: string
   notes: string
-  /** ISO UTC. null = unscheduled — drifts in the Oort cloud (backlog). */
+  /** ISO UTC. Always set for live tasks since v1.1 (the persist
+   * migration heals legacy nulls); nullable only for old 'done' rows. */
   deadline: string | null
   priority: Priority
   project: string
@@ -78,8 +79,7 @@ function makeTask(partial: Partial<Task> & Pick<Task, 'title'>): Task {
 function seedTasks(): Record<string, Task> {
   const now = Date.now()
   const due = (days: number) => new Date(now + days * DAY_MS).toISOString()
-  // Calm by default: a representative sky, not a showroom. Comets appear
-  // when a real interrupt does (tag 'interrupt'); the seed doesn't fake one.
+  // Calm by default: a representative sky, not a showroom.
   const seeds: Array<Partial<Task> & Pick<Task, 'title'>> = [
     { title: 'Ship the quarterly report', deadline: due(0.6), priority: 5, effort: 3, project: 'ship' },
     { title: 'Review open pull requests', deadline: due(1.4), priority: 3, effort: 1, project: 'ship' },
@@ -145,8 +145,8 @@ export const useTaskStore = create<TaskStoreState>()(
           completedAt,
         }
         if (task.recurrence !== 'none' && task.deadline) {
-          // A beacon never dies — the occurrence completes and the next
-          // one is already inbound: deadline advances one interval.
+          // A recurring task never dies — the occurrence completes and
+          // the next one is already inbound: deadline advances one interval.
           const interval = RECURRENCE_DAYS[task.recurrence] * DAY_MS
           const next = Math.max(Date.parse(task.deadline) + interval, atMs + interval)
           set({
