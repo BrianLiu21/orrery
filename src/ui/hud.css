@@ -160,6 +160,84 @@
   border-color: rgba(140, 180, 255, 0.5);
 }
 
+/* Day planner — bottom left, beside the create fab */
+.plan-fab {
+  position: fixed;
+  left: 124px;
+  bottom: 18px;
+}
+
+.day-planner {
+  left: 18px;
+  bottom: 64px;
+  width: 330px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.planner-hint {
+  color: var(--hud-dim);
+  font-size: 11px;
+  margin: 6px 0 10px;
+}
+
+.planner-project {
+  width: 120px;
+  background: rgba(10, 16, 28, 0.7);
+  border: 1px solid var(--hud-border);
+  border-radius: 6px;
+  color: var(--hud-text);
+  font-family: var(--hud-font);
+  font-size: 12px;
+  padding: 5px 8px;
+  outline: none;
+}
+
+.planner-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.planner-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.planner-row input {
+  background: rgba(10, 16, 28, 0.7);
+  border: 1px solid var(--hud-border);
+  border-radius: 6px;
+  color: var(--hud-text);
+  font-family: var(--hud-font);
+  font-size: 12px;
+  padding: 6px 8px;
+  outline: none;
+}
+
+.planner-row input[type='time'] {
+  width: 86px;
+  font-family: var(--hud-mono);
+  color-scheme: dark;
+}
+
+.planner-row input:not([type='time']) {
+  flex: 1;
+  min-width: 0;
+}
+
+.planner-row input:focus {
+  border-color: rgba(140, 180, 255, 0.5);
+}
+
+.planner-x {
+  padding: 4px 8px;
+  border: none;
+  color: var(--hud-dim);
+}
+
 /* Drag readout — bottom center */
 .drag-hud {
   left: 50%;

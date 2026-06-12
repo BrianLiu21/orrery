@@ -273,3 +273,19 @@ it; (3) all ceremony clocks are delta-clamped like birth. Verified live
 both flavors end to end: swell/molten, collapse + status flip, shells +
 afterglow, moon cascade, camera hold + ease home, wall-clock completion
 stamps, zero console errors.
+
+## The day planner
+
+"Plan the day": an ordered list of times and titles that ignites as a
+sequence of planets. No new orbital math — a time-of-day deadline is
+just a fractional day, so the schedule lands deep inside the habitable
+zone at hour-scale radii and sorts itself: the next thing to do is
+always the innermost planet. Times already past roll to tomorrow
+(entering tomorrow's plan tonight works naturally). Births stagger at
+650ms so the day assembles itself one world at a time, each with its
+swell. One project field tags the whole plan (default "today") so the
+day shares an accent and a constellation. Verified live: three rows
+(09:00/13:30/17:00 at ~13:06) → 19.9h (rolled), 0.4h, 3.9h — correct
+order, zero errors. Judgment calls: rows are deliberately minimal
+(time + title; priority P3/effort 1) — the ambient ethos; order is
+expressed by time, not enforced by locks.

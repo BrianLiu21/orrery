@@ -5,6 +5,7 @@ import { daysUntilDue } from '../lib/kepler'
 import { Telemetry } from './Telemetry'
 import { TaskPanel } from './TaskPanel'
 import { CreateTask } from './CreateTask'
+import { DayPlanner } from './DayPlanner'
 import { DragHud } from './DragHud'
 import { Utilities } from './Utilities'
 import { sound } from '../lib/sound'
@@ -50,6 +51,7 @@ export function Hud() {
       <Telemetry />
       <TaskPanel />
       <CreateTask />
+      <DayPlanner />
       <DragHud />
       <Utilities />
       <Klaxon />
