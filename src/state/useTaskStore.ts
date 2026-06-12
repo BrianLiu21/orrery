@@ -23,6 +23,13 @@ export interface Task {
   tags: string[]
   createdAt: string
   completedAt?: string
+  /** Chained step: stays a dormant seed until this task completes. The
+   * link is consumed on unlock (cleared), so it works for recurring
+   * predecessors too. */
+  chainPrevId?: string | null
+  /** When the task became a live planet. Birth visuals key off this;
+   * chained steps get it stamped at unlock. Defaults to createdAt. */
+  ignitedAt?: string
 }
 
 /** Durable record behind the galaxy (DESIGN.md §6) — must survive reloads. */
@@ -144,18 +151,26 @@ export const useTaskStore = create<TaskStoreState>()(
           mass: taskMass(task),
           completedAt,
         }
+        // Chained successors ignite the moment this completes — the link
+        // is consumed so the unlock is permanent (recurring-safe).
+        const igniteSuccessors = (tasks: Record<string, Task>) => {
+          for (const t of Object.values(tasks)) {
+            if (t.chainPrevId === id) {
+              tasks[t.id] = { ...t, chainPrevId: null, ignitedAt: completedAt }
+            }
+          }
+        }
         if (task.recurrence !== 'none' && task.deadline) {
           // A recurring task never dies — the occurrence completes and
           // the next one is already inbound: deadline advances one interval.
           const interval = RECURRENCE_DAYS[task.recurrence] * DAY_MS
           const next = Math.max(Date.parse(task.deadline) + interval, atMs + interval)
-          set({
-            tasks: {
-              ...get().tasks,
-              [id]: { ...task, deadline: new Date(next).toISOString(), status: 'active' },
-            },
-            completions: [...get().completions, record],
-          })
+          const tasks = {
+            ...get().tasks,
+            [id]: { ...task, deadline: new Date(next).toISOString(), status: 'active' as const },
+          }
+          igniteSuccessors(tasks)
+          set({ tasks, completions: [...get().completions, record] })
           return
         }
         // Completing a planet completes its moons — subtasks can't outlive
@@ -175,11 +190,19 @@ export const useTaskStore = create<TaskStoreState>()(
             })
           }
         }
+        igniteSuccessors(tasks)
         set({ tasks, completions: [...get().completions, ...records] })
       },
       deleteTask: (id) => {
         const tasks = { ...get().tasks }
         delete tasks[id]
+        // Deleting a link in a chain frees its successors.
+        const now = new Date().toISOString()
+        for (const t of Object.values(tasks)) {
+          if (t.chainPrevId === id) {
+            tasks[t.id] = { ...t, chainPrevId: null, ignitedAt: now }
+          }
+        }
         set({ tasks })
       },
     }),

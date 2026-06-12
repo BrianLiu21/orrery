@@ -289,3 +289,25 @@ day shares an accent and a constellation. Verified live: three rows
 order, zero errors. Judgment calls: rows are deliberately minimal
 (time + title; priority P3/effort 1) — the ambient ethos; order is
 expressed by time, not enforced by locks.
+
+## Chained days + daily repeat
+
+Two planner toggles. "Repeat daily" tags the plan's tasks with the
+existing daily recurrence — completing a step advances its deadline a
+day (machinery unchanged from the recurring-task path). "Chain in
+order" (default on) makes every step after the first a DORMANT SEED — a
+cold faceted planetesimal on its orbit, no atmosphere, no city lights,
+near-invisible ring — that IGNITES into a full planet (complete with
+the birth ceremony and swell) the instant its predecessor completes:
+the next world lights up as the old one dies. The link lives on the
+task (chainPrevId) and is consumed at unlock — stamped ignitedAt drives
+the birth clock — so it survives recurring predecessors and deletion
+frees successors. The panel shows 'Dormant — awaits "X"' instead of
+Complete, enforcing the order without locks anywhere else; deadlines
+still tick for dormant seeds, so an unstarted chain can still breach —
+honest pressure. Fixed during build: a rules-of-hooks violation (the
+predecessor subscription initially landed after the panel's early
+return). Verified live: 3-step chained plan → seeds dormant with
+correct panel copy → completing step 1 ran the full ceremony and
+ignited step 2 (link consumed, ignitedAt stamped) while step 3 kept
+sleeping; zero console errors.

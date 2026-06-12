@@ -238,6 +238,30 @@
   color: var(--hud-dim);
 }
 
+.planner-toggles {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.planner-toggles label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--hud-dim);
+  cursor: pointer;
+}
+
+.planner-toggles input {
+  accent-color: var(--hud-accent);
+}
+
+.dormant-note {
+  align-self: center;
+  color: var(--hud-dim);
+}
+
 /* Drag readout — bottom center */
 .drag-hud {
   left: 50%;

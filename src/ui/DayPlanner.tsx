@@ -34,6 +34,8 @@ export function DayPlanner() {
   const [project, setProject] = useState('today')
   const [rows, setRows] = useState<PlanRow[]>([{ ...EMPTY_ROW }])
   const [igniting, setIgniting] = useState(false)
+  const [chain, setChain] = useState(true)
+  const [repeatDaily, setRepeatDaily] = useState(false)
 
   const setRow = (i: number, patch: Partial<PlanRow>) => {
     setRows((rs) => {
@@ -57,16 +59,23 @@ export function DayPlanner() {
     setIgniting(true)
     const proj = project.trim() || 'today'
     // Stagger the births — the day accretes one world at a time, in order.
+    let prevId: string | null = null
     valid.forEach((row, i) => {
       setTimeout(() => {
-        useTaskStore.getState().addTask({
+        const task = useTaskStore.getState().addTask({
           title: row.title.trim(),
           deadline: new Date(deadlineFor(row.time, simNow)).toISOString(),
           priority: 3 as Priority,
           effort: 1,
           project: proj,
+          recurrence: repeatDaily ? 'daily' : 'none',
+          // Chained: every step after the first sleeps as a dormant seed
+          // until its predecessor completes.
+          chainPrevId: chain ? prevId : null,
         })
-        sound.birth()
+        prevId = task.id
+        // Only live births sing — dormant seeds wait for their ignition.
+        if (!chain || i === 0) sound.birth()
         if (i === valid.length - 1) {
           setIgniting(false)
           setOpen(false)
@@ -119,6 +128,24 @@ export function DayPlanner() {
                 </button>
               </div>
             ))}
+          </div>
+          <div className="planner-toggles">
+            <label>
+              <input
+                type="checkbox"
+                checked={chain}
+                onChange={(e) => setChain(e.target.checked)}
+              />
+              Chain in order
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={repeatDaily}
+                onChange={(e) => setRepeatDaily(e.target.checked)}
+              />
+              Repeat daily
+            </label>
           </div>
           <button
             className="hud-btn hud-btn--primary"

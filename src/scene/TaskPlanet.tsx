@@ -72,6 +72,23 @@ export function TaskPlanet({ task }: { task: Task }) {
   const isDying = () =>
     useUiStore.getState().deaths.some((d) => d.taskId === task.id)
 
+  // Chained step: a dormant seed until its predecessor completes (the
+  // store clears the link and stamps ignitedAt at that moment).
+  const dormant = useTaskStore((s) => {
+    if (!task.chainPrevId) return false
+    const pred = s.tasks[task.chainPrevId]
+    return !!pred && pred.status !== 'done'
+  })
+
+  // Ignition: when ignitedAt lands (chain unlock), restart the birth
+  // clock so the seed erupts into a full planet, with the birth swell.
+  useEffect(() => {
+    const born = task.ignitedAt ?? task.createdAt
+    const age = (Date.now() - Date.parse(born)) / 1000
+    birthAge.current = age
+    if (task.ignitedAt && age < 2) sound.birth()
+  }, [task.ignitedAt, task.createdAt])
+
   const accent = projectAccent(task.project)
   const inclination = projectInclination(task.project)
   const size = planetSize(task.priority)
@@ -89,7 +106,8 @@ export function TaskPlanet({ task }: { task: Task }) {
     birthAge.current += step
 
     // Surface heat: newborns cool down; dying planets ignite from within.
-    const birthHeat = Math.max(0, 1 - birthAge.current / MOLTEN_SECONDS)
+    // Dormant seeds stay cold.
+    const birthHeat = dormant ? 0 : Math.max(0, 1 - birthAge.current / MOLTEN_SECONDS)
     molten.current = birthHeat * birthHeat
 
     if (isDying()) {
@@ -171,7 +189,7 @@ export function TaskPlanet({ task }: { task: Task }) {
       ui.hoveredTaskId === task.id ||
       ui.draggingTaskId === task.id
     const inZone = !Number.isNaN(days) && days >= 0 && days <= HABITABLE_ZONE_DAYS
-    const targetOpacity = engaged ? 0.5 : inZone ? 0.38 : 0.15
+    const targetOpacity = dormant ? 0.07 : engaged ? 0.5 : inZone ? 0.38 : 0.15
     orbitOpacity.current +=
       (targetOpacity - orbitOpacity.current) * (1 - Math.exp(-6 * step))
   })
@@ -237,17 +255,32 @@ export function TaskPlanet({ task }: { task: Task }) {
           onPointerOver={() => useUiStore.getState().setHovered(task.id)}
           onPointerOut={() => useUiStore.getState().setHovered(null)}
         >
-          <PlanetBody
-            size={size}
-            accent={accent}
-            traits={traits}
-            rim={0.12 + task.priority * 0.14}
-            alive={task.status === 'active'}
-            moltenRef={molten}
-          />
+          {dormant ? (
+            // A chained step waiting its turn: a cold unignited seed.
+            <mesh>
+              <icosahedronGeometry args={[size * 0.55, 1]} />
+              <meshStandardMaterial
+                color="#5d6a75"
+                roughness={0.9}
+                metalness={0.05}
+                emissive={accent}
+                emissiveIntensity={0.07}
+                flatShading
+              />
+            </mesh>
+          ) : (
+            <PlanetBody
+              size={size}
+              accent={accent}
+              traits={traits}
+              rim={0.12 + task.priority * 0.14}
+              alive={task.status === 'active'}
+              moltenRef={molten}
+            />
+          )}
         </group>
-        <Moons parentId={task.id} parentSize={size} accent={accent} />
-        {birthAge.current < BIRTH_SECONDS && (
+        {!dormant && <Moons parentId={task.id} parentSize={size} accent={accent} />}
+        {!dormant && birthAge.current < BIRTH_SECONDS && (
           <BirthEffect size={size} accent={accent} age={birthAge.current} />
         )}
       </group>

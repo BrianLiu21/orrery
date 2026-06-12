@@ -34,6 +34,13 @@ export function TaskPanel() {
     ),
   )
 
+  // Chain predecessor of the selected task (if any) — hooks stay above
+  // the early return.
+  const predecessor = useTaskStore((s) => {
+    const t = selectedId ? s.tasks[selectedId] : undefined
+    return t?.chainPrevId ? s.tasks[t.chainPrevId] : undefined
+  })
+
   useEffect(() => {
     setAddingMoon(false)
     setMoonTitle('')
@@ -62,6 +69,8 @@ export function TaskPanel() {
   const isRecurring = task.recurrence !== 'none'
   // Moons only render around plain planets — gate spawning to match.
   const canHaveMoons = !task.parentId && !!task.deadline && !isRecurring
+  // Chained step still waiting on its predecessor.
+  const dormant = !!predecessor && predecessor.status !== 'done'
 
   const addMoon = () => {
     const title = moonTitle.trim()
@@ -187,9 +196,15 @@ export function TaskPanel() {
       )}
 
       <div className="actions">
-        <button className="hud-btn hud-btn--primary" onClick={complete}>
-          {isRecurring ? 'Complete cycle' : 'Complete'}
-        </button>
+        {dormant ? (
+          <span className="hud-label dormant-note">
+            Dormant — awaits “{predecessor?.title}”
+          </span>
+        ) : (
+          <button className="hud-btn hud-btn--primary" onClick={complete}>
+            {isRecurring ? 'Complete cycle' : 'Complete'}
+          </button>
+        )}
         <button className="hud-btn" onClick={() => push(1)}>
           +1d
         </button>
