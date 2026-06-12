@@ -250,3 +250,26 @@ inverse helpers and their verify sections (no callers — the spine only
 carries what the product uses); (2) auto-orbit idle is the defining
 resting state; camera max distance back to 500; (3) the moon system
 stayed — the user explicitly asked for subtask spawning.
+
+## The completion ceremony
+
+The reward moment, rebuilt as a staged cinematic (~5s): on Complete the
+panel slips away and the camera HOLDS the shot while the planet ignites
+from within (the molten shader flares back up), trembles, and collapses
+to a point over 1.6s; completeTask fires at the moment of collapse;
+then the detonation — blinding flash, expanding shockwave ring, two
+ejecta shells (fast hot + slow glitter), and a real point-light pulse
+that washes the neighbors' night sides for half a second — fades into a
+cooling ember while a bright tracer carries the earned star out to the
+galactic band; the camera eases home as the light dies. Death by mass
+kept: supernova-class is violent and white, nebula-class soft and
+accent-tinted. The score runs the same arc: rising swell → sub-thump
+detonation burst → resolving triad. Fixes that fell out of staging:
+(1) completing a parent now completes its moons (they were becoming
+invisible orphan tasks); (2) the planet's dying state is read straight
+from the store in the frame loop — the DOM-root click to R3F-root
+re-render hop is scheduler-deferred and the ceremony must not wait on
+it; (3) all ceremony clocks are delta-clamped like birth. Verified live
+both flavors end to end: swell/molten, collapse + status flip, shells +
+afterglow, moon cascade, camera hold + ease home, wall-clock completion
+stamps, zero console errors.

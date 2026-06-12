@@ -114,8 +114,9 @@ export interface PlanetBodyProps {
   rim: number
   /** City lights on the dark side (active rocky tasks only). */
   alive: boolean
-  /** Seconds since the task was born — drives the molten cool-down. */
-  birthRef?: RefObject<number>
+  /** Live surface heat 0..1 — birth cools it down, death flares it up.
+   * The caller shapes the curve; this is read raw every frame. */
+  moltenRef?: RefObject<number>
 }
 
 /** Newborn planets glow white-hot and cool into their surface over this
@@ -127,7 +128,7 @@ export const MOLTEN_SECONDS = 4.2
  * atmosphere rim, optional cloud layer and rings. Lighting always comes
  * from the star at the world origin — never any other source.
  */
-export function PlanetBody({ size, accent, traits, rim, alive, birthRef }: PlanetBodyProps) {
+export function PlanetBody({ size, accent, traits, rim, alive, moltenRef }: PlanetBodyProps) {
   const spinGroup = useRef<Group>(null)
   const body = useRef<Mesh>(null)
 
@@ -194,15 +195,12 @@ export function PlanetBody({ size, accent, traits, rim, alive, birthRef }: Plane
   useFrame((state, delta) => {
     const t = state.clock.elapsedTime
     stellarLightColor(useStarStore.getState().classTemp, lightColor)
-    // Molten cool-down: 1 at birth → 0 once the crust settles.
-    const age = birthRef?.current ?? Number.POSITIVE_INFINITY
-    const molten = Math.max(0, 1 - age / MOLTEN_SECONDS)
     setUniforms(surface, {
       uTime: t,
       uLightColor: lightColor,
       uRim: rim,
       uCityGlow: alive ? 1 : 0,
-      uMolten: molten * molten,
+      uMolten: moltenRef?.current ?? 0,
     })
     if (clouds) setUniforms(clouds, { uTime: t, uLightColor: lightColor })
     if (ring) setUniforms(ring, { uLightColor: lightColor })

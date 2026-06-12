@@ -92,9 +92,9 @@ class SoundEngine {
     osc.stop(t + dur + 0.05)
   }
 
-  private noiseSweep(dur: number, vol: number, fromHz: number, toHz: number): void {
+  private noiseSweep(dur: number, vol: number, fromHz: number, toHz: number, when = 0): void {
     if (!this.ctx || !this.master) return
-    const t = this.ctx.currentTime
+    const t = this.ctx.currentTime + when
     const length = Math.floor(this.ctx.sampleRate * dur)
     const buffer = this.ctx.createBuffer(1, length, this.ctx.sampleRate)
     const data = buffer.getChannelData(0)
@@ -113,7 +113,7 @@ class SoundEngine {
     src.connect(filter)
     filter.connect(gain)
     gain.connect(this.master)
-    src.start()
+    src.start(t)
   }
 
   /** One full revolution completed. radius01: 0 = due now … 1 = horizon. */
@@ -132,6 +132,46 @@ class SoundEngine {
     this.tone(base * 1.25, 1.1, 0.1, 'sine', 0.12)
     this.tone(base * 1.5, 1.7, 0.09, 'sine', 0.24)
     if (supernova) this.noiseSweep(1.8, 0.12, 500, 60)
+  }
+
+  /**
+   * The full completion score, timed to the death choreography:
+   * a rising swell while the planet ignites and collapses (0–1.6s),
+   * the detonation at 1.6s, and a resolving triad as the light fades.
+   */
+  completionSequence(supernova: boolean): void {
+    if (!this.ctx || !this.master) return
+    const t = this.ctx.currentTime
+    // Buildup: two detuned voices climbing a twelfth, swelling.
+    for (const detune of [1, 1.005]) {
+      const osc = this.ctx.createOscillator()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(165 * detune, t)
+      osc.frequency.exponentialRampToValueAtTime(495 * detune, t + 1.55)
+      const gain = this.ctx.createGain()
+      gain.gain.setValueAtTime(0, t)
+      gain.gain.linearRampToValueAtTime(0.05, t + 1.3)
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.65)
+      osc.connect(gain)
+      gain.connect(this.master)
+      osc.start(t)
+      osc.stop(t + 1.7)
+    }
+    // Detonation: sub thump + filtered burst.
+    this.tone(50, 1.1, supernova ? 0.15 : 0.07, 'sine', 1.6)
+    this.noiseSweep(
+      supernova ? 1.6 : 1.0,
+      supernova ? 0.16 : 0.07,
+      supernova ? 1800 : 900,
+      supernova ? 70 : 130,
+      1.6,
+    )
+    // Resolve: the reward triad, rising out of the blast.
+    const base = supernova ? 196 : 392
+    this.tone(base, 1.1, 0.11, 'sine', 2.15)
+    this.tone(base * 1.25, 1.4, 0.09, 'sine', 2.3)
+    this.tone(base * 1.5, 2.0, 0.08, 'sine', 2.5)
+    this.tone(base * 2, 2.6, 0.05, 'sine', 2.75)
   }
 
   /** Planet birth: a soft rising swell, then a bright shimmer at the

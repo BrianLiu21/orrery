@@ -78,25 +78,28 @@ export function TaskPanel() {
   }
 
   const complete = () => {
-    if (!isRecurring) {
-      // Death by mass. Recurring tasks never die — their deadline just
-      // advances one interval (store handles it).
-      const pos = planetPositions.get(task.id)
-      ui.pushDeath({
-        taskId: task.id,
-        mass,
-        position: pos ? [pos.x, pos.y, pos.z] : [0, 0, 0],
-        accent,
-        startedAt: Date.now(),
-      })
+    const pos = planetPositions.get(task.id)
+    // Recurring tasks never die (deadline advances); moons and anything
+    // without a live planet complete instantly — no ceremony to stage.
+    if (isRecurring || task.parentId || !pos) {
+      store.completeTask(task.id, Date.now())
+      sound.completionChime(false)
+      if (!isRecurring) ui.select(null)
+      return
     }
-    // Completions are facts about reality: stamp the WALL clock, never
-    // simNow — completing during a time-travel preview must not persist
-    // phantom future dates (streaks, recurrences, and the galaxy all
-    // read these records as truth).
-    store.completeTask(task.id, Date.now())
-    sound.completionChime(!isRecurring && mass >= SUPERNOVA_MASS)
-    if (!isRecurring) ui.select(null)
+    // Death by mass, staged: pushing the death event starts the planet's
+    // ignition/collapse (TaskPlanet); completeTask fires when it ends.
+    // The camera holds on the event (Rig) and the score runs the full
+    // swell → detonation → resolve arc.
+    ui.pushDeath({
+      taskId: task.id,
+      mass,
+      position: [pos.x, pos.y, pos.z],
+      accent,
+      startedAt: Date.now(),
+    })
+    sound.completionSequence(mass >= SUPERNOVA_MASS)
+    ui.select(null)
   }
 
   const push = (daysToAdd: number) => {

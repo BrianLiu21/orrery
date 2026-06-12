@@ -158,10 +158,24 @@ export const useTaskStore = create<TaskStoreState>()(
           })
           return
         }
-        set({
-          tasks: { ...get().tasks, [id]: { ...task, status: 'done', completedAt } },
-          completions: [...get().completions, record],
-        })
+        // Completing a planet completes its moons — subtasks can't outlive
+        // their parent (they'd be invisible orphans in the store).
+        const tasks = { ...get().tasks, [id]: { ...task, status: 'done' as const, completedAt } }
+        const records = [record]
+        for (const child of Object.values(tasks)) {
+          if (child.parentId === id && child.status !== 'done') {
+            tasks[child.id] = { ...child, status: 'done', completedAt }
+            records.push({
+              id: crypto.randomUUID(),
+              taskId: child.id,
+              title: child.title,
+              project: child.project,
+              mass: taskMass(child),
+              completedAt,
+            })
+          }
+        }
+        set({ tasks, completions: [...get().completions, ...records] })
       },
       deleteTask: (id) => {
         const tasks = { ...get().tasks }

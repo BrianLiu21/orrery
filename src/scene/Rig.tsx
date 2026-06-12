@@ -32,6 +32,7 @@ export function Rig() {
   const controls = useRef<OrbitControlsImpl>(null)
   const camera = useThree((s) => s.camera)
   const desired = useRef(new Vector3())
+  const deathFocus = useRef(new Vector3())
   const dragging = useUiStore((s) => s.draggingTaskId !== null)
   const lastInteraction = useRef(performance.now())
 
@@ -56,17 +57,31 @@ export function Rig() {
     const ui = useUiStore.getState()
     const selectedId = ui.selectedTaskId
     const dragging = ui.draggingTaskId !== null
+    const ceremony = ui.deaths[0]
 
     // Cinematic auto-orbit after idling in the resting view — this IS the
     // background-app mode: the sky slowly turning on your desk.
     c.autoRotate =
+      !ceremony &&
       !selectedId &&
       !dragging &&
       !document.hidden &&
       performance.now() - lastInteraction.current > IDLE_SECONDS * 1000
     c.autoRotateSpeed = 0.12
 
-    if (selectedId && !dragging) {
+    if (ceremony) {
+      // Completion ceremony: hold the shot. Frame the event wide enough
+      // for the blast, and don't go home until the light fades.
+      deathFocus.current.set(...ceremony.position)
+      easing.damp3(c.target, deathFocus.current, 0.5, dt)
+      const idealDist = 16 + ceremony.mass * 0.45
+      const dir = desired.current.copy(camera.position).sub(c.target)
+      const dist = dir.length() || 1
+      if (Math.abs(dist - idealDist) > 0.5) {
+        dir.multiplyScalar(idealDist / dist).add(c.target)
+        easing.damp3(camera.position, dir, 0.8, dt)
+      }
+    } else if (selectedId && !dragging) {
       const pos = planetPositions.get(selectedId)
       const task = useTaskStore.getState().tasks[selectedId]
       if (pos && task) {

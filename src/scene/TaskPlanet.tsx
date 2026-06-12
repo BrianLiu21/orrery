@@ -25,9 +25,10 @@ import { projectAccent, projectInclination } from '../lib/projects'
 import { planetTraits } from '../lib/planetTraits'
 import { planetPositions, writePlanetPosition } from '../state/planetPositions'
 import { Orbit } from './Orbit'
-import { PlanetBody } from './PlanetBody'
+import { MOLTEN_SECONDS, PlanetBody } from './PlanetBody'
 import { Moons } from './Moons'
 import { BirthEffect, BIRTH_SECONDS, birthScale } from './effects/BirthEffect'
+import { DEATH_LEAD, SWELL_SECONDS } from './effects/DeathEffect'
 import { RocheDebris } from './effects/RocheDebris'
 
 /** Priority → visual radius. Effort (mass) is drag inertia, not size. */
@@ -58,7 +59,18 @@ export function TaskPlanet({ task }: { task: Task }) {
   const dragRadius = useRef<number | null>(null)
   const visualRadius = useRef<number | null>(null)
   const orbitOpacity = useRef(0.1)
+  const molten = useRef(0)
+  const dyingElapsed = useRef(0)
+  const completedFired = useRef(false)
   const [shredded, setShredded] = useState(false)
+
+  // The completion ceremony: while a death event exists for this task,
+  // the planet ignites, trembles, and collapses in place (DEATH_LEAD
+  // seconds), then completeTask fires and DeathEffect detonates. Read
+  // straight from the store in the frame loop — no re-render round-trip
+  // between the panel's click (DOM root) and this component (R3F root).
+  const isDying = () =>
+    useUiStore.getState().deaths.some((d) => d.taskId === task.id)
 
   const accent = projectAccent(task.project)
   const inclination = projectInclination(task.project)
@@ -73,7 +85,45 @@ export function TaskPlanet({ task }: { task: Task }) {
     const { simNow, flowDays } = useTimeEngine.getState()
     const dt = prevFlow.current === null ? 0 : flowDays - prevFlow.current
     prevFlow.current = flowDays
-    birthAge.current += Math.min(delta, 0.1)
+    const step = Math.min(delta, 0.1)
+    birthAge.current += step
+
+    // Surface heat: newborns cool down; dying planets ignite from within.
+    const birthHeat = Math.max(0, 1 - birthAge.current / MOLTEN_SECONDS)
+    molten.current = birthHeat * birthHeat
+
+    if (isDying()) {
+      dyingElapsed.current += step
+      const e = dyingElapsed.current
+      const swell = Math.min(e / SWELL_SECONDS, 1)
+      molten.current = Math.max(molten.current, swell * swell)
+
+      if (planet.current) {
+        // Swell, tremble, then collapse to a point.
+        let s: number
+        if (e < SWELL_SECONDS) {
+          s = 1 + 0.12 * swell * swell
+        } else {
+          const c = Math.min((e - SWELL_SECONDS) / (DEATH_LEAD - SWELL_SECONDS), 1)
+          s = Math.max(1.12 * (1 - c * c * c), 0.02)
+        }
+        planet.current.scale.setScalar(s)
+        const amp = 0.05 * size * swell
+        planet.current.position.set(
+          pos.current.x + Math.sin(e * 47) * amp,
+          Math.cos(e * 53) * amp,
+          pos.current.z + Math.sin(e * 41 + 1.3) * amp,
+        )
+      }
+
+      if (e >= DEATH_LEAD && !completedFired.current) {
+        completedFired.current = true
+        useTaskStore.getState().completeTask(task.id, Date.now())
+      }
+      // Orbital motion is frozen for the ceremony; the ring fades out.
+      orbitOpacity.current += (0.02 - orbitOpacity.current) * (1 - Math.exp(-6 * step))
+      return
+    }
 
     const days = task.deadline ? daysUntilDue(task.deadline, simNow) : Number.NaN
     let targetRadius = Number.isNaN(days) ? R_NOW : radiusForDaysUntilDue(days)
@@ -94,7 +144,7 @@ export function TaskPlanet({ task }: { task: Task }) {
     if (visualRadius.current === null) visualRadius.current = targetRadius
     const lambda = dragRadius.current !== null ? 8 / (1 + mass * 0.18) : 12
     visualRadius.current +=
-      (targetRadius - visualRadius.current) * (1 - Math.exp(-lambda * Math.min(delta, 0.1)))
+      (targetRadius - visualRadius.current) * (1 - Math.exp(-lambda * step))
     const radius = visualRadius.current
 
     const prevAngle = angle.current
@@ -123,7 +173,7 @@ export function TaskPlanet({ task }: { task: Task }) {
     const inZone = !Number.isNaN(days) && days >= 0 && days <= HABITABLE_ZONE_DAYS
     const targetOpacity = engaged ? 0.5 : inZone ? 0.38 : 0.15
     orbitOpacity.current +=
-      (targetOpacity - orbitOpacity.current) * (1 - Math.exp(-6 * Math.min(delta, 0.1)))
+      (targetOpacity - orbitOpacity.current) * (1 - Math.exp(-6 * step))
   })
 
   useEffect(() => () => void planetPositions.delete(task.id), [task.id])
@@ -135,7 +185,7 @@ export function TaskPlanet({ task }: { task: Task }) {
   }
 
   const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
-    if (e.button !== 0) return
+    if (e.button !== 0 || isDying()) return
     e.stopPropagation()
     useUiStore.getState().select(task.id)
     useUiStore.getState().startDrag(task.id)
@@ -193,7 +243,7 @@ export function TaskPlanet({ task }: { task: Task }) {
             traits={traits}
             rim={0.12 + task.priority * 0.14}
             alive={task.status === 'active'}
-            birthRef={birthAge}
+            moltenRef={molten}
           />
         </group>
         <Moons parentId={task.id} parentSize={size} accent={accent} />
