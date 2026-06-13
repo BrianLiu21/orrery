@@ -133,7 +133,10 @@ export default function App() {
       <Hud />
       <KeyboardNav />
       <PaceDevControl />
-      <Leva titleBar={{ title: 'orrery / dev' }} collapsed />
+      {/* Dev-tuning panel: visible only in `npm run dev`. In production
+          the useControls hooks still return their baked defaults, so the
+          scene is unchanged — the panel is just hidden from visitors. */}
+      <Leva titleBar={{ title: 'orrery / dev' }} collapsed hidden={!import.meta.env.DEV} />
     </>
   )
 }
