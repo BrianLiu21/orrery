@@ -9,8 +9,6 @@ import {
   R_NOW,
   advanceAngle,
   daysUntilDue,
-  decayFractionForOverdueDays,
-  decayRadiusForOverdueDays,
   phaseFromHash,
   planePosition,
   radiusForDaysUntilDue,
@@ -156,15 +154,10 @@ export function TaskPlanet({ task }: { task: Task }) {
     const days = task.deadline ? daysUntilDue(task.deadline, simNow) : Number.NaN
     let targetRadius = Number.isNaN(days) ? R_NOW : radiusForDaysUntilDue(days)
 
-    // Overdue: spiral past R_NOW toward the Roche limit (curve owned by
-    // kepler.ts — the spine, not this component).
-    if (!Number.isNaN(days) && days < 0 && task.status !== 'done') {
-      targetRadius = decayRadiusForOverdueDays(-days)
-      const isShredded = decayFractionForOverdueDays(-days) >= 1
-      if (isShredded !== shredded) setShredded(isShredded)
-    } else if (shredded) {
-      setShredded(false)
-    }
+    // Overdue = tidally shredded on the spot: cross the deadline and the
+    // planet is torn into the debris ring near the star (DESIGN.md §5).
+    const overdue = !Number.isNaN(days) && days < 0 && task.status !== 'done'
+    if (overdue !== shredded) setShredded(overdue)
 
     // Drag-to-reschedule preview: ease toward the pointer with inertia
     // proportional to mass — heavy tasks resist being moved.

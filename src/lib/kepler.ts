@@ -43,11 +43,9 @@ export const K_PERIOD = 0.25
 /** Deadlines within this many days are "in the zone" — do this now. */
 export const HABITABLE_ZONE_DAYS = 2
 
-/** Inside this radius an overdue planet is tidally shredded (§5). */
+/** Radius of the debris ring an overdue planet is shredded into (§5).
+ * A breach shreds on the spot — no spiral; the planet is torn here. */
 export const ROCHE_RADIUS = 5.2
-
-/** Sim-days an overdue task takes to spiral from R_NOW to the Roche limit. */
-export const DECAY_DAYS = 1.5
 
 /** Where completed-task remnants drift: the browsable archive halo (§6). */
 export const ARCHIVE_RADIUS = 85
@@ -154,17 +152,6 @@ export function habitableZoneBounds(): { inner: number; outer: number } {
   }
 }
 
-/**
- * Overdue spiral (Roche decay, §5): radius eases from R_NOW down to the
- * Roche limit as the task ages past its deadline. Fraction 1 = shredded.
- */
-export function decayFractionForOverdueDays(daysOverdue: number): number {
-  return clamp(daysOverdue / DECAY_DAYS, 0, 1)
-}
-
-export function decayRadiusForOverdueDays(daysOverdue: number): number {
-  return R_NOW + (ROCHE_RADIUS - R_NOW) * decayFractionForOverdueDays(daysOverdue)
-}
 
 /**
  * Unit-circle orbit-ring vertices in the XZ plane plus a per-vertex angle

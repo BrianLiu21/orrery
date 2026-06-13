@@ -4,14 +4,10 @@
  * habitable-zone bounds. Run with `npm run verify:kepler`.
  */
 import {
-  DECAY_DAYS,
   HABITABLE_ZONE_DAYS,
   R_NOW,
-  ROCHE_RADIUS,
   angularSpeedForRadius,
   daysUntilDueForRadius,
-  decayFractionForOverdueDays,
-  decayRadiusForOverdueDays,
   habitableZoneBounds,
   orbitRingVertices,
   orbitalAngle,
@@ -61,15 +57,6 @@ check(
   radiusForDaysUntilDue(HABITABLE_ZONE_DAYS),
 )
 
-console.log('\nRoche decay — overdue spiral (§5)')
-check('decay radius at 0 days overdue = R_NOW', decayRadiusForOverdueDays(0), R_NOW)
-check(
-  `decay radius at DECAY_DAYS (${DECAY_DAYS}) = Roche limit`,
-  decayRadiusForOverdueDays(DECAY_DAYS),
-  ROCHE_RADIUS,
-)
-check('decay clamps past the limit', decayRadiusForOverdueDays(DECAY_DAYS * 9), ROCHE_RADIUS)
-check('shred fraction at half decay', decayFractionForOverdueDays(DECAY_DAYS / 2), 0.5)
 
 console.log('\nOrbit ring vertices — unit circle')
 {
