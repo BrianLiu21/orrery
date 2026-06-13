@@ -354,3 +354,20 @@ pointer state in the headless preview tab. Hardened regardless: a
 drag-reschedule now commits only if the planet moved >0.6 world units
 from the grab point, so clicks, jitter, and any phantom event can never
 silently rewrite a deadline.
+
+## Final polish pass
+
+HUD: planner description removed, project input fills its row, time
+inputs widened so AM/PM isn't clipped, moon placeholder de-em-dashed.
+New favicon: an orrery mark — warm star, tilted cyan orbit passing in
+front and behind, one teal task approaching — in the app palette.
+Molten rework (the "white with red spots" fix): the magma pass is now
+dark basalt crust + ember cells + THIN white-gold glowing veins, with
+HDR confined to the veins so bloom lights the cracks instead of
+bleaching the ball; the cool-down exponent softened (1.35) so the crust
+visibly cools after ignition. One landmine found live: `patch` is a
+GLSL reserved word — the first version failed shader compilation on
+all three planet materials (renamed to `mottle`). Verified mid-swell:
+the dying planet reads as proper cooling magma. Final battery: 35
+verify checks pass, typecheck clean, production build green, zero
+console errors after full ceremony + birth runs.

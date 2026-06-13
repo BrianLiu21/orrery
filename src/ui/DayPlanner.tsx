@@ -96,12 +96,7 @@ export function DayPlanner() {
       {open && (
         <div className="hud-panel day-planner">
           <div className="hud-label">Plot today's trajectory</div>
-          <p className="planner-hint">
-            Start and end for each step (end defaults to the next start).
-            Seeds ignite at their start time; finished slots roll to
-            tomorrow.
-          </p>
-          <label className="hud-row">
+          <label className="hud-row planner-project-row">
             <span className="hud-label">Project</span>
             <input
               className="planner-project"

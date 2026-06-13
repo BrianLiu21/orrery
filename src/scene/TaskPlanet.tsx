@@ -115,9 +115,10 @@ export function TaskPlanet({ task }: { task: Task }) {
     birthAge.current += step
 
     // Surface heat: newborns cool down; dying planets ignite from within.
-    // Dormant seeds stay cold.
+    // Dormant seeds stay cold. Gentle exponent: the magma crust lingers
+    // and visibly cools instead of vanishing right after ignition.
     const birthHeat = dormant ? 0 : Math.max(0, 1 - birthAge.current / MOLTEN_SECONDS)
-    molten.current = birthHeat * birthHeat
+    molten.current = Math.pow(birthHeat, 1.35)
 
     if (isDying()) {
       dyingElapsed.current += step

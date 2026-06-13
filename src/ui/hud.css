@@ -170,19 +170,20 @@
 .day-planner {
   left: 18px;
   bottom: 64px;
-  width: 392px;
+  width: 426px;
   max-height: 70vh;
   overflow-y: auto;
 }
 
-.planner-hint {
-  color: var(--hud-dim);
-  font-size: 11px;
-  margin: 6px 0 10px;
+.planner-project-row {
+  margin-top: 10px;
+  align-items: center;
+  gap: 12px;
 }
 
 .planner-project {
-  width: 120px;
+  flex: 1;
+  min-width: 0;
   background: rgba(10, 16, 28, 0.7);
   border: 1px solid var(--hud-border);
   border-radius: 6px;
@@ -218,7 +219,7 @@
 }
 
 .planner-row input[type='time'] {
-  width: 78px;
+  width: 96px;
   font-family: var(--hud-mono);
   font-size: 11px;
   color-scheme: dark;

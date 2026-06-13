@@ -70,12 +70,17 @@ void main() {
   float fres = pow(1.0 - clamp(dot(normalize(vWorldNormal), V), 0.0, 1.0), 3.0);
   col += uAccent * fres * uRim * (0.2 + 0.8 * diff);
 
-  // Newborn crust: white-hot magma with crackle veins, cooling to the
-  // final surface as uMolten falls 1 -> 0. HDR so the ignition blooms.
+  // Molten crust (birth cool-down / completion swell): dark basalt with
+  // ember patches and THIN white-gold magma veins. Only the veins are
+  // HDR, so bloom lights the cracks instead of bleaching the ball.
   if (uMolten > 0.001) {
-    float crackle = 1.0 - abs(snoise(vObjPos * 7.5 + uTime * 0.35));
-    vec3 lava = mix(vec3(1.5, 0.5, 0.18), vec3(1.95, 1.55, 0.95),
-                    smoothstep(0.5, 0.95, crackle));
+    float vein = 1.0 - abs(snoise(vObjPos * 6.0 + uTime * 0.22));
+    float veins = smoothstep(0.86, 0.985, vein);
+    float mottle = fbm3(vObjPos * 2.2 + uTime * 0.07) * 0.5 + 0.5;
+    vec3 crust = vec3(0.10, 0.055, 0.045) * (0.5 + 0.9 * mottle);
+    vec3 ember = vec3(1.15, 0.27, 0.05) * smoothstep(0.48, 0.88, mottle);
+    vec3 glowv = vec3(2.3, 1.35, 0.45) * veins * (0.7 + 0.5 * mottle);
+    vec3 lava = crust + ember * 0.9 + glowv;
     col = mix(col, lava, uMolten);
   }
 
