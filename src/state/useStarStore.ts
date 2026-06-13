@@ -11,13 +11,20 @@ interface StarState {
   /** Intraday mood 0..1 — drives flow/prominences/shimmer, never class
    * identity or luminosity. Decays overnight (lib/streak.solarActivity). */
   activity: number
+  /** Wall-clock ms of the last periapsis breach. The star flinches —
+   * dims, stalls, cools briefly — then recovers over ~8s. A stumble,
+   * not a punishment; never touches class. 0 = never breached. */
+  lastBreachAt: number
   setClassTemp: (t: number) => void
   setActivity: (a: number) => void
+  registerBreach: () => void
 }
 
 export const useStarStore = create<StarState>()((set) => ({
   classTemp: 0.35,
   activity: 0,
+  lastBreachAt: 0,
   setClassTemp: (t) => set({ classTemp: Math.min(1, Math.max(0, t)) }),
   setActivity: (a) => set({ activity: Math.min(1, Math.max(0, a)) }),
+  registerBreach: () => set({ lastBreachAt: Date.now() }),
 }))

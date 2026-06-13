@@ -85,19 +85,26 @@ export function Star({ temp, onSurfaceMesh }: StarProps) {
     // shimmer a touch hotter, and the corona breathe brighter. Class
     // identity (uTemp's base) and luminosity stay streak-owned (§4).
     const activity = useStarStore.getState().activity
+    // Breach flinch: a fast transient stumble (~8s recovery, tau 3s) that
+    // dims, stalls, and cools the star a touch — independent of activity
+    // so it shows even on a calm star. Subtracted from the RENDERED temp
+    // only; the stored class (identity) is untouched.
+    const breachAt = useStarStore.getState().lastBreachAt
+    const shock = breachAt ? Math.exp(-((Date.now() - breachAt) / 1000) / 3) : 0
+    const temp = Math.min(Math.max(classTemp + activity * 0.06 - shock * 0.05, 0), 1)
     setUniforms(surfaceMat, {
       uTime: t,
-      uTemp: Math.min(classTemp + activity * 0.06, 1),
+      uTemp: temp,
       uGranScale: c.granScale,
       uWarp: c.warp,
       uSpotAmount: c.spots,
-      uBrightness: c.brightness,
-      uFlowSpeed: c.flowSpeed * (1 + activity * 1.4),
+      uBrightness: c.brightness * (1 - 0.2 * shock),
+      uFlowSpeed: c.flowSpeed * (1 + activity * 1.4) * (1 - 0.6 * shock),
     })
     setUniforms(coronaMat, {
       uTime: t,
-      uTemp: Math.min(classTemp + activity * 0.06, 1),
-      uIntensity: c.coronaIntensity * (1 + activity * 0.45),
+      uTemp: temp,
+      uIntensity: c.coronaIntensity * (1 + activity * 0.45) * (1 - 0.5 * shock),
     })
   })
 

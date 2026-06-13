@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useTimeEngine } from '../state/useTimeEngine'
 import { useTaskStore } from '../state/useTaskStore'
+import { useStarStore } from '../state/useStarStore'
 import { daysUntilDue } from '../lib/kepler'
 import { sound } from '../lib/sound'
 
@@ -43,6 +44,7 @@ export function TimeTicker() {
       if (task.status === 'active' && days < 0) {
         updateTask(task.id, { status: 'overdue' })
         sound.overdueSting()
+        useStarStore.getState().registerBreach() // the star flinches
       } else if (task.status === 'overdue' && days >= 0) {
         updateTask(task.id, { status: 'active' })
       }
