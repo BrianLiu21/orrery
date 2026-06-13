@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTaskStore, type Priority } from '../state/useTaskStore'
 import { useTimeEngine } from '../state/useTimeEngine'
 import { useUiStore } from '../state/useUiStore'
-import { DAY_MS } from '../lib/kepler'
+import { resolveSlot, timeToMs } from '../lib/slots'
 import { sound } from '../lib/sound'
 
 interface PlanRow {
@@ -12,44 +12,6 @@ interface PlanRow {
 }
 
 const EMPTY_ROW: PlanRow = { start: '', end: '', title: '' }
-
-/** Time-of-day "HH:MM" → epoch ms on the same day as nowMs. */
-function timeToMs(time: string, nowMs: number): number {
-  const [h = 0, m = 0] = time.split(':').map(Number)
-  const d = new Date(nowMs)
-  d.setHours(h, m, 0, 0)
-  return d.getTime()
-}
-
-interface Slot {
-  startMs: number
-  endMs: number
-}
-
-/**
- * Resolve a row into a slot. End defaults to the next row's start (your
- * slot ends when the next begins) or end-of-day for the last. A slot
- * whose END already passed rolls whole to tomorrow; a slot already in
- * progress keeps its end and starts now.
- */
-function resolveSlot(
-  row: PlanRow,
-  nextStart: string | undefined,
-  nowMs: number,
-): Slot {
-  const startMs = timeToMs(row.start, nowMs)
-  let endMs: number
-  if (row.end) endMs = timeToMs(row.end, nowMs)
-  else if (nextStart) endMs = timeToMs(nextStart, nowMs)
-  else {
-    const eod = new Date(nowMs)
-    eod.setHours(23, 59, 0, 0)
-    endMs = eod.getTime()
-  }
-  if (endMs <= startMs) endMs += DAY_MS // overnight slot (23:00–01:00)
-  if (endMs <= nowMs + 60_000) return { startMs: startMs + DAY_MS, endMs: endMs + DAY_MS }
-  return { startMs, endMs }
-}
 
 /**
  * The day planner: an ordered list of times and titles, ignited as a
@@ -83,14 +45,20 @@ export function DayPlanner() {
 
   const ignite = () => {
     const { simNow } = useTimeEngine.getState()
-    const valid = rows.filter((r) => r.title.trim() && r.start)
+    // The plan is intrinsically time-ordered: sort by start so chains,
+    // default ends, and the accretion sequence all follow the clock no
+    // matter what order the rows were typed in.
+    const valid = rows
+      .filter((r) => r.title.trim() && r.start)
+      .slice()
+      .sort((a, b) => timeToMs(a.start, simNow) - timeToMs(b.start, simNow))
     if (valid.length === 0) return
     setIgniting(true)
     const proj = project.trim() || 'today'
     // Stagger the births — the day accretes one world at a time, in order.
     let prevId: string | null = null
     valid.forEach((row, i) => {
-      const slot = resolveSlot(row, valid[i + 1]?.start, simNow)
+      const slot = resolveSlot(row.start, row.end || undefined, valid[i + 1]?.start, simNow)
       setTimeout(() => {
         const live = slot.startMs <= simNow
         const task = useTaskStore.getState().addTask({

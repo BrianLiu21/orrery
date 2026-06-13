@@ -19,6 +19,7 @@ import {
   periodForRadius,
   radiusForDaysUntilDue,
 } from '../src/lib/kepler'
+import { resolveSlot } from '../src/lib/slots'
 
 let failures = 0
 
@@ -83,6 +84,46 @@ console.log('\nOrbit ring vertices — unit circle')
   // Float32Array storage quantizes to fp32 — tolerance reflects that.
   check('all vertices on the unit circle', maxErr, 0, 1e-6)
   check('angle attribute spans the loop', angles[63] ?? 0, ((64 - 1) / 64) * Math.PI * 2, 1e-6)
+}
+
+console.log('\nSlot resolution — day-plan edge cases')
+{
+  // A fixed reference: a local evening, 20:00.
+  const now = new Date(2026, 5, 15, 20, 0, 0, 0).getTime()
+  const hm = (ms: number) => {
+    const d = new Date(ms)
+    return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
+  }
+  // Explicit overnight end wraps to tomorrow.
+  const overnight = resolveSlot('23:00', '01:00', undefined, now)
+  check('overnight slot spans 2h', (overnight.endMs - overnight.startMs) / 3_600_000, 2, 1e-6)
+  // Equal starts (defaulted end = own start) → 30-minute slot, not 24h.
+  const equal = resolveSlot('21:00', undefined, '21:00', now)
+  check('equal-start default end = 30min', (equal.endMs - equal.startMs) / 60_000, 30, 1e-6)
+  // Out-of-order next start (earlier than this start) → 30min, not 18h.
+  const unsorted = resolveSlot('21:00', undefined, '10:00', now)
+  check('unsorted default end = 30min', (unsorted.endMs - unsorted.startMs) / 60_000, 30, 1e-6)
+  // 23:59 last-row start → 30min past end-of-day, not a phantom day.
+  const lastRow = resolveSlot('23:59', undefined, undefined, now)
+  check('23:59 start gets 30min', (lastRow.endMs - lastRow.startMs) / 60_000, 30, 1e-6)
+  // Past slot rolls to tomorrow KEEPING local clock times (DST-safe):
+  // planned the evening before US spring-forward (2026-03-08).
+  const dstEve = new Date(2026, 2, 7, 20, 0, 0, 0).getTime()
+  const rolled = resolveSlot('09:00', '10:00', undefined, dstEve)
+  if (hm(rolled.startMs) !== '9:00' || hm(rolled.endMs) !== '10:00') {
+    failures++
+    console.log(
+      `FAIL  DST roll keeps wall-clock times  got ${hm(rolled.startMs)}–${hm(rolled.endMs)}`,
+    )
+  } else {
+    console.log('PASS  DST roll keeps wall-clock times  9:00–10:00')
+  }
+  check(
+    'rolled slot lands on the next calendar day',
+    new Date(rolled.startMs).getDate(),
+    8,
+    1e-9,
+  )
 }
 
 if (failures > 0) {

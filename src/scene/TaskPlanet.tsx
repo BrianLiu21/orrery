@@ -57,6 +57,7 @@ export function TaskPlanet({ task }: { task: Task }) {
   const worldPos = useRef(new Vector3())
   const hitPoint = useRef(new Vector3())
   const dragRadius = useRef<number | null>(null)
+  const dragStartRadius = useRef<number | null>(null)
   const visualRadius = useRef<number | null>(null)
   const orbitOpacity = useRef(0.1)
   const molten = useRef(0)
@@ -215,6 +216,7 @@ export function TaskPlanet({ task }: { task: Task }) {
     e.stopPropagation()
     useUiStore.getState().select(task.id)
     useUiStore.getState().startDrag(task.id)
+    dragStartRadius.current = visualRadius.current
     const target = e.target as unknown as { setPointerCapture?: (id: number) => void }
     target.setPointerCapture?.(e.pointerId)
   }
@@ -241,7 +243,14 @@ export function TaskPlanet({ task }: { task: Task }) {
     if (useUiStore.getState().draggingTaskId !== task.id) return
     e.stopPropagation()
     const preview = useUiStore.getState().dragPreviewDays
-    if (preview !== null && dragRadius.current !== null) {
+    // Commit only a REAL drag: the planet must have moved meaningfully
+    // from where it was grabbed. A click (or pointer jitter, or any
+    // phantom event) must never silently rewrite a deadline.
+    const moved =
+      dragRadius.current !== null &&
+      dragStartRadius.current !== null &&
+      Math.abs(dragRadius.current - dragStartRadius.current) > 0.6
+    if (preview !== null && moved) {
       const { simNow } = useTimeEngine.getState()
       useTaskStore.getState().updateTask(task.id, {
         deadline: new Date(simNow + preview * DAY_MS).toISOString(),
@@ -249,6 +258,7 @@ export function TaskPlanet({ task }: { task: Task }) {
       })
     }
     dragRadius.current = null
+    dragStartRadius.current = null
     useUiStore.getState().endDrag()
   }
 

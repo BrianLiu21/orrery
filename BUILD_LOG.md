@@ -334,3 +334,23 @@ consumed; planner slots resolved correctly (explicit end, default-to-
 next-start, end-of-day); completing Slot A ignited Slot B before its
 19:00 slot (first-of, chain side); activity read 0.26 from decaying
 history. Zero errors.
+
+## Slot review fixes + drag-commit guard
+
+The background review of the slots commit confirmed two resolveSlot
+defects before stalling: (1) the overnight wrap applied to DEFAULTED
+ends too, so equal or out-of-order start times silently produced
+phantom 18–24h slots; (2) rolling slots with raw +24h arithmetic
+shifted an hour across DST transitions. Fixed by extracting slot math
+into lib/slots.ts (pure, tested): rows sort chronologically before
+resolving (the plan is time-ordered no matter how it was typed), only
+EXPLICIT ends wrap overnight (degenerate defaults get a minimal 30min
+slot), and all day arithmetic is calendar-aware (setDate, wall-clock
+preserved across DST). verify:kepler grew six slot checks including a
+spring-forward roll. Separately, two runtime deadlines in the dev save
+were found silently rewritten with drag-style fractional values —
+clean-room repros exonerate creation logic; the trigger was phantom
+pointer state in the headless preview tab. Hardened regardless: a
+drag-reschedule now commits only if the planet moved >0.6 world units
+from the grab point, so clicks, jitter, and any phantom event can never
+silently rewrite a deadline.
