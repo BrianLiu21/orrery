@@ -188,7 +188,7 @@ export function TaskPanel() {
               <input
                 className="moon-input"
                 autoFocus
-                placeholder="Moon title (press Enter)"
+                placeholder="Moon title"
                 value={moonTitle}
                 onChange={(e) => setMoonTitle(e.target.value)}
                 onKeyDown={(e) => {

@@ -178,12 +178,12 @@
 .planner-project-row {
   margin-top: 10px;
   align-items: center;
+  justify-content: flex-start;
   gap: 12px;
 }
 
 .planner-project {
-  flex: 1;
-  min-width: 0;
+  width: 150px;
   background: rgba(10, 16, 28, 0.7);
   border: 1px solid var(--hud-border);
   border-radius: 6px;
